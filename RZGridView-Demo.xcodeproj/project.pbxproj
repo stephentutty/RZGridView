@@ -1,0 +1,479 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 46;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		FE4554AF14CF344F0017B40D /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = FE4554AE14CF344F0017B40D /* UIKit.framework */; };
+		FE4554B114CF344F0017B40D /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = FE4554B014CF344F0017B40D /* Foundation.framework */; };
+		FE4554B314CF344F0017B40D /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = FE4554B214CF344F0017B40D /* CoreGraphics.framework */; };
+		FE4554B914CF344F0017B40D /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = FE4554B714CF344F0017B40D /* InfoPlist.strings */; };
+		FE4554BB14CF344F0017B40D /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = FE4554BA14CF344F0017B40D /* main.m */; };
+		FE4554BF14CF344F0017B40D /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = FE4554BE14CF344F0017B40D /* AppDelegate.m */; };
+		FE4554C214CF344F0017B40D /* ViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = FE4554C114CF344F0017B40D /* ViewController.m */; };
+		FE4554C514CF344F0017B40D /* ViewController_iPhone.xib in Resources */ = {isa = PBXBuildFile; fileRef = FE4554C314CF344F0017B40D /* ViewController_iPhone.xib */; };
+		FE4554C814CF344F0017B40D /* ViewController_iPad.xib in Resources */ = {isa = PBXBuildFile; fileRef = FE4554C614CF344F0017B40D /* ViewController_iPad.xib */; };
+		FE4554D014CF344F0017B40D /* SenTestingKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = FE4554CF14CF344F0017B40D /* SenTestingKit.framework */; };
+		FE4554D114CF344F0017B40D /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = FE4554AE14CF344F0017B40D /* UIKit.framework */; };
+		FE4554D214CF344F0017B40D /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = FE4554B014CF344F0017B40D /* Foundation.framework */; };
+		FE4554DA14CF344F0017B40D /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = FE4554D814CF344F0017B40D /* InfoPlist.strings */; };
+		FE4554DD14CF344F0017B40D /* RZGridView_DemoTests.m in Sources */ = {isa = PBXBuildFile; fileRef = FE4554DC14CF344F0017B40D /* RZGridView_DemoTests.m */; };
+		FE4554F814CF34CE0017B40D /* RZGridView.m in Sources */ = {isa = PBXBuildFile; fileRef = FE4554F514CF34CE0017B40D /* RZGridView.m */; };
+		FE4554F914CF34CE0017B40D /* RZGridViewCell.m in Sources */ = {isa = PBXBuildFile; fileRef = FE4554F714CF34CE0017B40D /* RZGridViewCell.m */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		FE4554D314CF344F0017B40D /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = FE4554A114CF344F0017B40D /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = FE4554A914CF344F0017B40D;
+			remoteInfo = "RZGridView-Demo";
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		FE4554AA14CF344F0017B40D /* RZGridView-Demo.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "RZGridView-Demo.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		FE4554AE14CF344F0017B40D /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = System/Library/Frameworks/UIKit.framework; sourceTree = SDKROOT; };
+		FE4554B014CF344F0017B40D /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
+		FE4554B214CF344F0017B40D /* CoreGraphics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreGraphics.framework; path = System/Library/Frameworks/CoreGraphics.framework; sourceTree = SDKROOT; };
+		FE4554B614CF344F0017B40D /* RZGridView-Demo-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "RZGridView-Demo-Info.plist"; sourceTree = "<group>"; };
+		FE4554B814CF344F0017B40D /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
+		FE4554BA14CF344F0017B40D /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
+		FE4554BC14CF344F0017B40D /* RZGridView-Demo-Prefix.pch */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "RZGridView-Demo-Prefix.pch"; sourceTree = "<group>"; };
+		FE4554BD14CF344F0017B40D /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
+		FE4554BE14CF344F0017B40D /* AppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
+		FE4554C014CF344F0017B40D /* ViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ViewController.h; sourceTree = "<group>"; };
+		FE4554C114CF344F0017B40D /* ViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ViewController.m; sourceTree = "<group>"; };
+		FE4554C414CF344F0017B40D /* en */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = en; path = en.lproj/ViewController_iPhone.xib; sourceTree = "<group>"; };
+		FE4554C714CF344F0017B40D /* en */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = en; path = en.lproj/ViewController_iPad.xib; sourceTree = "<group>"; };
+		FE4554CE14CF344F0017B40D /* RZGridView-DemoTests.octest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "RZGridView-DemoTests.octest"; sourceTree = BUILT_PRODUCTS_DIR; };
+		FE4554CF14CF344F0017B40D /* SenTestingKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SenTestingKit.framework; path = Library/Frameworks/SenTestingKit.framework; sourceTree = DEVELOPER_DIR; };
+		FE4554D714CF344F0017B40D /* RZGridView-DemoTests-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "RZGridView-DemoTests-Info.plist"; sourceTree = "<group>"; };
+		FE4554D914CF344F0017B40D /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
+		FE4554DB14CF344F0017B40D /* RZGridView_DemoTests.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = RZGridView_DemoTests.h; sourceTree = "<group>"; };
+		FE4554DC14CF344F0017B40D /* RZGridView_DemoTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = RZGridView_DemoTests.m; sourceTree = "<group>"; };
+		FE4554F414CF34CE0017B40D /* RZGridView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RZGridView.h; sourceTree = "<group>"; };
+		FE4554F514CF34CE0017B40D /* RZGridView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = RZGridView.m; sourceTree = "<group>"; };
+		FE4554F614CF34CE0017B40D /* RZGridViewCell.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RZGridViewCell.h; sourceTree = "<group>"; };
+		FE4554F714CF34CE0017B40D /* RZGridViewCell.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = RZGridViewCell.m; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		FE4554A714CF344F0017B40D /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				FE4554AF14CF344F0017B40D /* UIKit.framework in Frameworks */,
+				FE4554B114CF344F0017B40D /* Foundation.framework in Frameworks */,
+				FE4554B314CF344F0017B40D /* CoreGraphics.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		FE4554CA14CF344F0017B40D /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				FE4554D014CF344F0017B40D /* SenTestingKit.framework in Frameworks */,
+				FE4554D114CF344F0017B40D /* UIKit.framework in Frameworks */,
+				FE4554D214CF344F0017B40D /* Foundation.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		FE45549F14CF344F0017B40D = {
+			isa = PBXGroup;
+			children = (
+				FE4554B414CF344F0017B40D /* RZGridView-Demo */,
+				FE4554F314CF34CE0017B40D /* RZGridView */,
+				FE4554D514CF344F0017B40D /* RZGridView-DemoTests */,
+				FE4554AD14CF344F0017B40D /* Frameworks */,
+				FE4554AB14CF344F0017B40D /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		FE4554AB14CF344F0017B40D /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				FE4554AA14CF344F0017B40D /* RZGridView-Demo.app */,
+				FE4554CE14CF344F0017B40D /* RZGridView-DemoTests.octest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		FE4554AD14CF344F0017B40D /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				FE4554AE14CF344F0017B40D /* UIKit.framework */,
+				FE4554B014CF344F0017B40D /* Foundation.framework */,
+				FE4554B214CF344F0017B40D /* CoreGraphics.framework */,
+				FE4554CF14CF344F0017B40D /* SenTestingKit.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		FE4554B414CF344F0017B40D /* RZGridView-Demo */ = {
+			isa = PBXGroup;
+			children = (
+				FE4554BD14CF344F0017B40D /* AppDelegate.h */,
+				FE4554BE14CF344F0017B40D /* AppDelegate.m */,
+				FE4554C014CF344F0017B40D /* ViewController.h */,
+				FE4554C114CF344F0017B40D /* ViewController.m */,
+				FE4554C314CF344F0017B40D /* ViewController_iPhone.xib */,
+				FE4554C614CF344F0017B40D /* ViewController_iPad.xib */,
+				FE4554B514CF344F0017B40D /* Supporting Files */,
+			);
+			path = "RZGridView-Demo";
+			sourceTree = "<group>";
+		};
+		FE4554B514CF344F0017B40D /* Supporting Files */ = {
+			isa = PBXGroup;
+			children = (
+				FE4554B614CF344F0017B40D /* RZGridView-Demo-Info.plist */,
+				FE4554B714CF344F0017B40D /* InfoPlist.strings */,
+				FE4554BA14CF344F0017B40D /* main.m */,
+				FE4554BC14CF344F0017B40D /* RZGridView-Demo-Prefix.pch */,
+			);
+			name = "Supporting Files";
+			sourceTree = "<group>";
+		};
+		FE4554D514CF344F0017B40D /* RZGridView-DemoTests */ = {
+			isa = PBXGroup;
+			children = (
+				FE4554DB14CF344F0017B40D /* RZGridView_DemoTests.h */,
+				FE4554DC14CF344F0017B40D /* RZGridView_DemoTests.m */,
+				FE4554D614CF344F0017B40D /* Supporting Files */,
+			);
+			path = "RZGridView-DemoTests";
+			sourceTree = "<group>";
+		};
+		FE4554D614CF344F0017B40D /* Supporting Files */ = {
+			isa = PBXGroup;
+			children = (
+				FE4554D714CF344F0017B40D /* RZGridView-DemoTests-Info.plist */,
+				FE4554D814CF344F0017B40D /* InfoPlist.strings */,
+			);
+			name = "Supporting Files";
+			sourceTree = "<group>";
+		};
+		FE4554F314CF34CE0017B40D /* RZGridView */ = {
+			isa = PBXGroup;
+			children = (
+				FE4554F414CF34CE0017B40D /* RZGridView.h */,
+				FE4554F514CF34CE0017B40D /* RZGridView.m */,
+				FE4554F614CF34CE0017B40D /* RZGridViewCell.h */,
+				FE4554F714CF34CE0017B40D /* RZGridViewCell.m */,
+			);
+			path = RZGridView;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		FE4554A914CF344F0017B40D /* RZGridView-Demo */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = FE4554E014CF344F0017B40D /* Build configuration list for PBXNativeTarget "RZGridView-Demo" */;
+			buildPhases = (
+				FE4554A614CF344F0017B40D /* Sources */,
+				FE4554A714CF344F0017B40D /* Frameworks */,
+				FE4554A814CF344F0017B40D /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = "RZGridView-Demo";
+			productName = "RZGridView-Demo";
+			productReference = FE4554AA14CF344F0017B40D /* RZGridView-Demo.app */;
+			productType = "com.apple.product-type.application";
+		};
+		FE4554CD14CF344F0017B40D /* RZGridView-DemoTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = FE4554E314CF344F0017B40D /* Build configuration list for PBXNativeTarget "RZGridView-DemoTests" */;
+			buildPhases = (
+				FE4554C914CF344F0017B40D /* Sources */,
+				FE4554CA14CF344F0017B40D /* Frameworks */,
+				FE4554CB14CF344F0017B40D /* Resources */,
+				FE4554CC14CF344F0017B40D /* ShellScript */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				FE4554D414CF344F0017B40D /* PBXTargetDependency */,
+			);
+			name = "RZGridView-DemoTests";
+			productName = "RZGridView-DemoTests";
+			productReference = FE4554CE14CF344F0017B40D /* RZGridView-DemoTests.octest */;
+			productType = "com.apple.product-type.bundle";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		FE4554A114CF344F0017B40D /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				LastUpgradeCheck = 0420;
+				ORGANIZATIONNAME = Raizlabs;
+			};
+			buildConfigurationList = FE4554A414CF344F0017B40D /* Build configuration list for PBXProject "RZGridView-Demo" */;
+			compatibilityVersion = "Xcode 3.2";
+			developmentRegion = English;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+			);
+			mainGroup = FE45549F14CF344F0017B40D;
+			productRefGroup = FE4554AB14CF344F0017B40D /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				FE4554A914CF344F0017B40D /* RZGridView-Demo */,
+				FE4554CD14CF344F0017B40D /* RZGridView-DemoTests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		FE4554A814CF344F0017B40D /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				FE4554B914CF344F0017B40D /* InfoPlist.strings in Resources */,
+				FE4554C514CF344F0017B40D /* ViewController_iPhone.xib in Resources */,
+				FE4554C814CF344F0017B40D /* ViewController_iPad.xib in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		FE4554CB14CF344F0017B40D /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				FE4554DA14CF344F0017B40D /* InfoPlist.strings in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		FE4554CC14CF344F0017B40D /* ShellScript */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "# Run the unit tests in this test bundle.\n\"${SYSTEM_DEVELOPER_DIR}/Tools/RunUnitTests\"\n";
+		};
+/* End PBXShellScriptBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		FE4554A614CF344F0017B40D /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				FE4554BB14CF344F0017B40D /* main.m in Sources */,
+				FE4554BF14CF344F0017B40D /* AppDelegate.m in Sources */,
+				FE4554C214CF344F0017B40D /* ViewController.m in Sources */,
+				FE4554F814CF34CE0017B40D /* RZGridView.m in Sources */,
+				FE4554F914CF34CE0017B40D /* RZGridViewCell.m in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		FE4554C914CF344F0017B40D /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				FE4554DD14CF344F0017B40D /* RZGridView_DemoTests.m in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		FE4554D414CF344F0017B40D /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = FE4554A914CF344F0017B40D /* RZGridView-Demo */;
+			targetProxy = FE4554D314CF344F0017B40D /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin PBXVariantGroup section */
+		FE4554B714CF344F0017B40D /* InfoPlist.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				FE4554B814CF344F0017B40D /* en */,
+			);
+			name = InfoPlist.strings;
+			sourceTree = "<group>";
+		};
+		FE4554C314CF344F0017B40D /* ViewController_iPhone.xib */ = {
+			isa = PBXVariantGroup;
+			children = (
+				FE4554C414CF344F0017B40D /* en */,
+			);
+			name = ViewController_iPhone.xib;
+			sourceTree = "<group>";
+		};
+		FE4554C614CF344F0017B40D /* ViewController_iPad.xib */ = {
+			isa = PBXVariantGroup;
+			children = (
+				FE4554C714CF344F0017B40D /* en */,
+			);
+			name = ViewController_iPad.xib;
+			sourceTree = "<group>";
+		};
+		FE4554D814CF344F0017B40D /* InfoPlist.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				FE4554D914CF344F0017B40D /* en */,
+			);
+			name = InfoPlist.strings;
+			sourceTree = "<group>";
+		};
+/* End PBXVariantGroup section */
+
+/* Begin XCBuildConfiguration section */
+		FE4554DE14CF344F0017B40D /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				COPY_PHASE_STRIP = NO;
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
+				GCC_WARN_ABOUT_MISSING_PROTOTYPES = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 5.0;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		FE4554DF14CF344F0017B40D /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				COPY_PHASE_STRIP = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
+				GCC_WARN_ABOUT_MISSING_PROTOTYPES = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 5.0;
+				OTHER_CFLAGS = "-DNS_BLOCK_ASSERTIONS=1";
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		FE4554E114CF344F0017B40D /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "RZGridView-Demo/RZGridView-Demo-Prefix.pch";
+				INFOPLIST_FILE = "RZGridView-Demo/RZGridView-Demo-Info.plist";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				WRAPPER_EXTENSION = app;
+			};
+			name = Debug;
+		};
+		FE4554E214CF344F0017B40D /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "RZGridView-Demo/RZGridView-Demo-Prefix.pch";
+				INFOPLIST_FILE = "RZGridView-Demo/RZGridView-Demo-Info.plist";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				WRAPPER_EXTENSION = app;
+			};
+			name = Release;
+		};
+		FE4554E414CF344F0017B40D /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(BUILT_PRODUCTS_DIR)/RZGridView-Demo.app/RZGridView-Demo";
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(SDKROOT)/Developer/Library/Frameworks",
+					"$(DEVELOPER_LIBRARY_DIR)/Frameworks",
+				);
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "RZGridView-Demo/RZGridView-Demo-Prefix.pch";
+				INFOPLIST_FILE = "RZGridView-DemoTests/RZGridView-DemoTests-Info.plist";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				TEST_HOST = "$(BUNDLE_LOADER)";
+				WRAPPER_EXTENSION = octest;
+			};
+			name = Debug;
+		};
+		FE4554E514CF344F0017B40D /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(BUILT_PRODUCTS_DIR)/RZGridView-Demo.app/RZGridView-Demo";
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(SDKROOT)/Developer/Library/Frameworks",
+					"$(DEVELOPER_LIBRARY_DIR)/Frameworks",
+				);
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "RZGridView-Demo/RZGridView-Demo-Prefix.pch";
+				INFOPLIST_FILE = "RZGridView-DemoTests/RZGridView-DemoTests-Info.plist";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				TEST_HOST = "$(BUNDLE_LOADER)";
+				WRAPPER_EXTENSION = octest;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		FE4554A414CF344F0017B40D /* Build configuration list for PBXProject "RZGridView-Demo" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				FE4554DE14CF344F0017B40D /* Debug */,
+				FE4554DF14CF344F0017B40D /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		FE4554E014CF344F0017B40D /* Build configuration list for PBXNativeTarget "RZGridView-Demo" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				FE4554E114CF344F0017B40D /* Debug */,
+				FE4554E214CF344F0017B40D /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		FE4554E314CF344F0017B40D /* Build configuration list for PBXNativeTarget "RZGridView-DemoTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				FE4554E414CF344F0017B40D /* Debug */,
+				FE4554E514CF344F0017B40D /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = FE4554A114CF344F0017B40D /* Project object */;
+}
