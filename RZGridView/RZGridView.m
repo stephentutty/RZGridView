@@ -124,6 +124,7 @@
     self.scrolling = NO;
     
     self.scrollView = [[[UIScrollView alloc] initWithFrame:self.bounds] autorelease];
+    self.scrollView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
     self.scrollView.multipleTouchEnabled = NO;
     self.scrollView.delegate = self;
     //self.scrollView.backgroundColor = [UIColor scrollViewTexturedBackgroundColor];
@@ -140,6 +141,14 @@
     [self tileCells];
     
     [self addSubview:self.scrollView];
+}
+
+- (void)layoutSubviews
+{
+    [super layoutSubviews];
+    
+    [self configureScrollView];
+    [self tileCells];
 }
 
 - (void)setDataSource:(id<RZGridViewDataSource>)dataSource
