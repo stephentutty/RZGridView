@@ -10,6 +10,7 @@
 
 @implementation ViewController
 @synthesize gridView = _gridView;
+@synthesize numbersArray = _numbersArray;
 
 - (void)didReceiveMemoryWarning
 {
@@ -67,14 +68,38 @@
 
 - (void)dealloc {
     [_gridView release];
+    [_numbersArray release];
+    
     [super dealloc];
+}
+
+- (NSMutableArray*)numbersArray
+{
+    if (nil == _numbersArray)
+    {
+        NSMutableArray *numbers = [NSMutableArray arrayWithCapacity:90];
+        
+        for (int i = 0; i < 90; ++i)
+        {
+            [numbers addObject:[NSNumber numberWithInt:i]];
+        }
+        
+        self.numbersArray = numbers;
+    }
+    
+    return _numbersArray;
 }
 
 #pragma mark - RZGridViewDataSource
 
+- (NSInteger)gridView:(RZGridView *)gridView numberOfItemsInSection:(NSInteger)section
+{
+    return [self.numbersArray count];
+}
+
 - (NSInteger)gridView:(RZGridView*)gridView numberOfRowsInSection:(NSInteger)section
 {
-    return 30;
+    return [self.numbersArray count] / 3;
 }
 
 - (NSInteger)gridView:(RZGridView*)gridView numberOfColumnsInRow:(NSInteger)row inSection:(NSInteger)section
@@ -82,13 +107,25 @@
     return 3;
 }
 
+- (CGFloat)gridView:(RZGridView *)gridView heightForRowAtIndexPath:(NSIndexPath*)indexPath
+{
+    return self.view.bounds.size.height / 4.0;
+}
+
 - (RZGridViewCell*)gridView:(RZGridView*)gridView cellForItemAtIndexPath:(NSIndexPath*)indexPath
 {
     static NSString *cellIdentifier = @"ExampleCell";
     
-    RZGridViewCell *cell = [[[RZGridViewCell alloc] initWithStyle:RZGridViewCellStyleDefault reuseIdentifier:cellIdentifier] autorelease];
+    RZGridViewCell *cell = [gridView dequeueReusableCellWithIdentifier:cellIdentifier];
     
-    NSInteger colorIndex = indexPath.gridRow * 3 + indexPath.gridColumn;
+    if (nil == cell)
+    {
+        cell = [[[RZGridViewCell alloc] initWithStyle:RZGridViewCellStyleDefault reuseIdentifier:cellIdentifier] autorelease];
+    }
+    
+    
+    NSInteger numbersIndex = indexPath.gridRow * 3 + indexPath.gridColumn;
+    NSInteger colorIndex = [[self.numbersArray objectAtIndex:numbersIndex] integerValue];
     
     UIColor *color = nil;
     
@@ -127,6 +164,7 @@
     }
     
     cell.backgroundColor = color;
+    cell.titleLabel.text = [NSString stringWithFormat:@"%d", colorIndex];
     
     return cell;
 }
@@ -134,6 +172,24 @@
 - (void)gridView:(RZGridView *)gridView moveItemAtIndexPath:(NSIndexPath *)sourceIndexPath toIndexPath:(NSIndexPath *)destinationIndexPath
 {
     NSLog(@"Item Moved from: %@ to: %@", sourceIndexPath, destinationIndexPath);
+    
+    NSUInteger sourceIndex = sourceIndexPath.gridRow * 3 + sourceIndexPath.gridColumn;
+    NSUInteger destinationIndex = destinationIndexPath.gridRow * 3 + destinationIndexPath.gridColumn;
+    NSUInteger removeIndex = sourceIndex;
+    
+    if (destinationIndex < sourceIndex)
+    {
+        ++removeIndex;
+    }
+    else
+    {
+        ++destinationIndex;
+    }
+    
+    NSNumber *index = [self.numbersArray objectAtIndex:sourceIndex];
+    
+    [self.numbersArray insertObject:index atIndex:destinationIndex];
+    [self.numbersArray removeObjectAtIndex:removeIndex];
 }
 
 

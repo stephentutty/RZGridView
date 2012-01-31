@@ -11,5 +11,6 @@
 
 @interface ViewController : UIViewController <RZGridViewDelegate, RZGridViewDataSource>
 @property (retain, nonatomic) IBOutlet RZGridView *gridView;
+@property (retain, nonatomic) NSMutableArray *numbersArray;
 
 @end
