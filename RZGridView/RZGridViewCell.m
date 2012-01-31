@@ -38,8 +38,6 @@
         self.style = style;
         self.reuseIdentifier = reuseIdentifier;
         
-        self.contentMode = UIViewContentModeScaleAspectFit;
-        
         [self configureCellForStyle:style];
         
     }
@@ -72,9 +70,13 @@
 {
     if (style == RZGridViewCellStyleDefault)
     {
+        self.contentMode = UIViewContentModeScaleToFill;
+        CGRect imageViewRect = CGRectMake(5, 30, self.bounds.size.width - 10, self.bounds.size.height - 30);
+        CGRect titleLabelRect = CGRectMake(5, 0, self.bounds.size.width - 10, 25);
+        
         if (!self.contentView)
         {
-            self.contentView = [[[UIView alloc] initWithFrame:CGRectMake(0, 0, 200, 200)] autorelease];
+            self.contentView = [[[UIView alloc] initWithFrame:self.bounds] autorelease];
         }
         else
         {
@@ -83,7 +85,7 @@
         
         if (!self.imageView)
         {
-            self.imageView = [[[UIImageView alloc] initWithFrame:CGRectMake(5, 30, 190, 165)] autorelease];
+            self.imageView = [[[UIImageView alloc] initWithFrame:imageViewRect] autorelease];
         }
         else
         {
@@ -92,31 +94,31 @@
         
         if (!self.titleLabel)
         {
-            self.titleLabel = [[[UILabel alloc] initWithFrame:CGRectMake(5, 3, 190, 25)] autorelease];
+            self.titleLabel = [[[UILabel alloc] initWithFrame:titleLabelRect] autorelease];
         }
         else
         {
             [[self.titleLabel subviews] makeObjectsPerformSelector:@selector(removeFromSuperview)];
         }
         
-        self.contentView.frame = CGRectMake(0, 0, 200, 200);
+        self.contentView.frame = self.bounds;
         self.contentView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
         self.contentView.contentMode = UIViewContentModeScaleToFill;
         self.contentView.backgroundColor = [UIColor clearColor];
         [self addSubview:self.contentView];
         
         self.imageView.image = nil;
-        self.imageView.frame = CGRectMake(5, 30, 190, 165);
+        self.imageView.frame = imageViewRect;
         self.imageView.contentMode = UIViewContentModeScaleAspectFit;
         self.imageView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight  | UIViewAutoresizingFlexibleTopMargin;
         self.imageView.backgroundColor = [UIColor clearColor];
         [self.contentView addSubview:self.imageView];
         
         self.titleLabel.text = nil;
-        self.titleLabel.frame = CGRectMake(5, 3, 190, 25);
+        self.titleLabel.frame = titleLabelRect;
         self.titleLabel.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight | UIViewAutoresizingFlexibleBottomMargin;
         self.titleLabel.textAlignment = UITextAlignmentCenter;
-        self.titleLabel.contentMode = UIViewContentModeCenter;
+        self.titleLabel.contentMode = UIViewContentModeScaleToFill;
         self.titleLabel.backgroundColor = [UIColor clearColor];
         [self.contentView addSubview:self.titleLabel];
     }

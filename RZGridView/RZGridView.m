@@ -648,6 +648,7 @@
                 [longPress release];
                 
                 cell.userInteractionEnabled = YES;
+                cell.clipsToBounds = YES;
                 
                 [self.scrollView addSubview:cell];
                 
