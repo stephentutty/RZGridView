@@ -30,6 +30,7 @@
     NSUInteger _totalSections;
     
     struct {
+        unsigned int dataSourceNumberOfItemsInSection:1;
         unsigned int dataSourceNumberOfRowsInSection:1;
         unsigned int dataSourceNumberOfColumnsInRow:1;
         unsigned int dataSourceCellForItemAtIndexPath:1;
@@ -47,6 +48,8 @@
 
 @property (nonatomic, assign) id<RZGridViewDataSource> dataSource;
 @property (nonatomic, assign) id<RZGridViewDelegate> delegate;
+
+@property (nonatomic, assign) NSTimeInterval reorderLongPressDelay;             // defaults to 0.5
 
 @property (retain, readonly) RZGridViewCell *selectedCell;
 
@@ -68,6 +71,8 @@
 - (NSArray *)visibleCells;
 - (NSArray *)indexPathsForVisibleItems;
 
+- (RZGridViewCell*)dequeueReusableCellWithIdentifier:(NSString*)cellIdentifier;
+
 @end
 
 // Grid View Data Source Protocol
@@ -75,6 +80,7 @@
 
 @required
 
+- (NSInteger)gridView:(RZGridView*)gridView numberOfItemsInSection:(NSInteger)section;
 - (NSInteger)gridView:(RZGridView*)gridView numberOfRowsInSection:(NSInteger)section;
 - (NSInteger)gridView:(RZGridView*)gridView numberOfColumnsInRow:(NSInteger)row inSection:(NSInteger)section;
 

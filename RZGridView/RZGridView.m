@@ -11,8 +11,9 @@
 @interface RZGridView ()
 
 @property (nonatomic, retain, getter = _visibleCells) NSMutableArray *visibleCells;
-
+@property (nonatomic, retain) NSMutableSet *recycledCells;
 @property (retain, readwrite) RZGridViewCell *selectedCell;
+@property (nonatomic, retain) NSMutableArray *reorderedCellsIndexMap;
 
 @property (nonatomic, retain) UIScrollView *scrollView;
 @property (nonatomic, retain) NSMutableArray *sectionRanges;
@@ -37,12 +38,15 @@
 - (void)loadData;
 - (void)configureScrollView;
 
-- (void)tileCells;
+- (void)updateVisibleCells;
 - (void)tileCellsAnimated:(BOOL)animated;
+- (void)layoutCells;
 
 - (void)handleCellPress:(UILongPressGestureRecognizer*)gestureRecognizer;
 - (void)moveItemAtIndexPath:(NSIndexPath*)sourceIndexPath toIndexPath:(NSIndexPath*)destinationIndexPath;
 
+- (NSArray*)indexPathsForItemsInRect:(CGRect)rect;
+- (NSIndexPath*)indexPathForIndex:(NSInteger)index;
 - (NSUInteger)indexForIndexPath:(NSIndexPath*)indexPath;
 - (NSRange)rangeForSection:(NSUInteger)section;
 - (NSRange)rangeForRow:(NSUInteger)row inSection:(NSUInteger)section;
@@ -62,8 +66,12 @@
 @synthesize dataSource = _dataSource;
 @synthesize delegate = _delegate;
 
+@synthesize reorderLongPressDelay = _reorderLongPressDelay;
+
 @synthesize visibleCells = _visibleCells;
+@synthesize recycledCells = _recycledCells;
 @synthesize selectedCell = _selectedCell;
+@synthesize reorderedCellsIndexMap = _reorderedCellsIndexMap;
 
 @synthesize scrollView = _scrollView;
 @synthesize sectionRanges = _sectionRanges;
@@ -121,7 +129,10 @@
     self.totalRows = 0;
     self.totalItems = 0;
     self.maxCols = 0;
+    self.reorderLongPressDelay = 0.5;
     self.scrolling = NO;
+    
+    self.recycledCells = [NSMutableSet set];
     
     self.scrollView = [[[UIScrollView alloc] initWithFrame:self.bounds] autorelease];
     self.scrollView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
@@ -138,7 +149,7 @@
     
     [self loadData];
     [self configureScrollView];
-    [self tileCells];
+    [self tileCellsAnimated:NO];
     
     [self addSubview:self.scrollView];
 }
@@ -148,7 +159,7 @@
     [super layoutSubviews];
     
     [self configureScrollView];
-    [self tileCells];
+    [self tileCellsAnimated:NO];
 }
 
 - (void)setDataSource:(id<RZGridViewDataSource>)dataSource
@@ -192,7 +203,7 @@
 {
     [self loadData];
     [self configureScrollView];
-    [self tileCells];
+    [self tileCellsAnimated:NO];
 
 }
 
@@ -364,35 +375,38 @@
 {
     NSUInteger index = [self.visibleCells indexOfObject:cell];
     
-    NSInteger section = -1;
-    
-    for (int sectionIndex = 0; sectionIndex < [self.sectionRanges count]; ++sectionIndex)
+    if (index != NSNotFound)
     {
-        NSValue *value = [self.sectionRanges objectAtIndex:sectionIndex];
-        NSRange sectionRange = [value rangeValue];
-        if (NSLocationInRange(index, sectionRange))
+        NSInteger section = -1;
+        
+        for (int sectionIndex = 0; sectionIndex < [self.sectionRanges count]; ++sectionIndex)
         {
-            section = sectionIndex;
-            break;
+            NSValue *value = [self.sectionRanges objectAtIndex:sectionIndex];
+            NSRange sectionRange = [value rangeValue];
+            if (NSLocationInRange(index, sectionRange))
+            {
+                section = sectionIndex;
+                break;
+            }
         }
-    }
-    
-    if (section < 0 || section >= [self.rowRangesBySection count])
-    {
-        return nil;
-    }
-    
-    NSArray *sectionRowRanges = [self.rowRangesBySection objectAtIndex:section];
-    
-    for (int row = 0; row < [sectionRowRanges count]; ++row)
-    {
-        NSValue *value = [sectionRowRanges objectAtIndex:row];
-        NSRange rowRange = [value rangeValue];
-        if (NSLocationInRange(index, rowRange))
+        
+        if (section < 0 || section >= [self.rowRangesBySection count])
         {
-            NSInteger column = index - rowRange.location;
-            
-            return [NSIndexPath indexPathForColumn:column andRow:row inSection:section];
+            return nil;
+        }
+        
+        NSArray *sectionRowRanges = [self.rowRangesBySection objectAtIndex:section];
+        
+        for (int row = 0; row < [sectionRowRanges count]; ++row)
+        {
+            NSValue *value = [sectionRowRanges objectAtIndex:row];
+            NSRange rowRange = [value rangeValue];
+            if (NSLocationInRange(index, rowRange))
+            {
+                NSInteger column = index - rowRange.location;
+                
+                return [NSIndexPath indexPathForColumn:column andRow:row inSection:section];
+            }
         }
     }
     
@@ -405,7 +419,12 @@
     
     if (index < [self.visibleCells count])
     {
-        return [self.visibleCells objectAtIndex:index];
+        id cell = [self.visibleCells objectAtIndex:index];
+        
+        if (cell != [NSNull null])
+        {
+            return cell;
+        }
     }
     
     return nil;
@@ -413,13 +432,39 @@
 
 - (NSArray *)visibleCells
 {
-    return self.visibleCells;
+    return [self.visibleCells filteredArrayUsingPredicate:[NSPredicate predicateWithFormat:@"SELF != %@", [NSNull null]]];
 }
 
 - (NSArray *)indexPathsForVisibleItems
 {
-    //TODO - Implement Method
-    return nil;
+    NSArray *visibleCells = [self visibleCells];
+    NSMutableArray *indexPaths = [NSMutableArray arrayWithCapacity:[visibleCells count]];
+    
+    for (RZGridViewCell *cell in visibleCells)
+    {
+        NSIndexPath *indexPath = [self indexPathForCell:cell];
+        if (nil != indexPath)
+        {
+            [indexPaths addObject:indexPath];
+        }
+    }
+    
+    return indexPaths;
+}
+
+- (RZGridViewCell*)dequeueReusableCellWithIdentifier:(NSString*)cellIdentifier
+{
+    NSSet *reusableCells = [self.recycledCells filteredSetUsingPredicate:[NSPredicate predicateWithFormat:@"reuseIdentifier == %@", cellIdentifier]];
+    
+    RZGridViewCell *cell = [reusableCells anyObject];
+    
+    if (cell)
+    {
+        [self.recycledCells removeObject:cell];
+        [cell prepareForReuse];
+    }
+    
+    return cell;
 }
 
 - (void)loadData
@@ -434,7 +479,7 @@
         numSections = [self.dataSource numberOfSectionsInGridView:self];
     }
     
-    [self.visibleCells makeObjectsPerformSelector:@selector(removeFromSuperview)];
+    [[self visibleCells] makeObjectsPerformSelector:@selector(removeFromSuperview)];
     
     self.visibleCells = [NSMutableArray array];
     self.sectionRanges = [NSMutableArray arrayWithCapacity:numSections];
@@ -444,6 +489,7 @@
     {
         NSInteger sectionOffset = totalItems;
         NSInteger itemsInSection = 0;
+        NSInteger totalItemsInSection = [self.dataSource gridView:self numberOfItemsInSection:section];
         NSInteger numRows = [self.dataSource gridView:self numberOfRowsInSection:section];
         totalRows += numRows;
         
@@ -459,22 +505,9 @@
             
             for (NSInteger column = 0; column < numColumns; ++column)
             {
-                NSIndexPath *indexPath = [NSIndexPath indexPathForColumn:column andRow:row inSection:section];
-                
-                RZGridViewCell *cell = [self.dataSource gridView:self cellForItemAtIndexPath:indexPath];
-                
-                if (cell)
+                if (itemsInSection < totalItemsInSection)
                 {
-                    
-                    UILongPressGestureRecognizer *longPress = [[UILongPressGestureRecognizer alloc] initWithTarget:self action:@selector(handleCellPress:)];
-                    longPress.minimumPressDuration = 0.2;
-                    longPress.delegate = self;
-                    [cell addGestureRecognizer:longPress];
-                    [longPress release];
-                    
-                    cell.userInteractionEnabled = YES;
-                    
-                    [self.visibleCells addObject:cell];
+                    [self.visibleCells addObject:[NSNull null]];
                     ++itemsInRow;
                     ++itemsInSection;
                     ++totalItems;
@@ -496,8 +529,8 @@
     self.totalSections = numSections;
     self.maxCols = maxCols;
     
-    NSLog(@"Section Ranges:\n%@", self.sectionRanges);
-    NSLog(@"Row Ranges:\n%@", self.rowRangesBySection);
+//    NSLog(@"Section Ranges:\n%@", self.sectionRanges);
+//    NSLog(@"Row Ranges:\n%@", self.rowRangesBySection);
 }
 
 - (void)configureScrollView
@@ -538,15 +571,119 @@
     }
 }
 
+- (void)updateVisibleCells
+{
+    [UIView setAnimationsEnabled:NO];
+    
+    CGRect visibleRect = CGRectIntersection((CGRect){CGPointZero, self.scrollView.contentSize}, CGRectInset(self.scrollView.bounds, -self.colWidth, -self.rowHeight));
+    
+    NSArray *currentVisibleIndexPaths = [self indexPathsForVisibleItems];
+    NSArray *stillVisibleIndexPaths = [self indexPathsForItemsInRect:visibleRect];
+    
+    NSMutableSet *stillVisibleCells = [NSMutableSet setWithCapacity:[stillVisibleIndexPaths count]];
+    
+    NSMutableSet *removedIndexPaths = [NSMutableSet setWithArray:currentVisibleIndexPaths];
+    [removedIndexPaths minusSet:[NSSet setWithArray:stillVisibleIndexPaths]];
+    
+//    NSLog(@"Cells to Remove: %d", [removedIndexPaths count]);
+    
+    for (NSIndexPath *indexPath in removedIndexPaths)
+    {
+        RZGridViewCell *cell = [self cellForItemAtIndexPath:indexPath];
+        
+        if (cell && cell != self.selectedCell)
+        {
+            [self.recycledCells addObject:cell];
+            for (UIGestureRecognizer *gr in [cell gestureRecognizers])
+            {
+                if (gr.delegate == self)
+                {
+                    [cell removeGestureRecognizer:gr];
+                }
+            }
+            [cell removeFromSuperview];
+            NSUInteger index = [self.visibleCells indexOfObject:cell];
+            
+            if (NSNotFound != index)
+            {
+                [self.visibleCells replaceObjectAtIndex:index withObject:[NSNull null]];
+            }
+        }
+    }
+    
+    for (NSIndexPath *indexPath in stillVisibleIndexPaths)
+    {
+        RZGridViewCell *cell = nil;
+        
+        cell = [self cellForItemAtIndexPath:indexPath];
+        
+        if (cell)
+        {
+            [stillVisibleCells addObject:cell];
+        }
+        else
+        {
+            if (self.selectedCell)
+            {
+                NSInteger oldIndex = [self indexForIndexPath:indexPath];
+                NSInteger newIndex = [[self.reorderedCellsIndexMap objectAtIndex:oldIndex] integerValue];
+                NSIndexPath *newIndexPath = [self indexPathForIndex:newIndex];
+                
+                cell = [self.dataSource gridView:self cellForItemAtIndexPath:newIndexPath];
+            }
+            else
+            {
+                cell = [self.dataSource gridView:self cellForItemAtIndexPath:indexPath];
+            }
+            
+            if (cell)
+            {
+                CGRect cellFrame = [self rectForItemAtIndexPath:indexPath];
+                cell.frame = cellFrame;
+                
+                UILongPressGestureRecognizer *longPress = [[UILongPressGestureRecognizer alloc] initWithTarget:self action:@selector(handleCellPress:)];
+                longPress.minimumPressDuration = self.reorderLongPressDelay;
+                longPress.delegate = self;
+                [cell addGestureRecognizer:longPress];
+                [longPress release];
+                
+                cell.userInteractionEnabled = YES;
+                
+                [self.scrollView addSubview:cell];
+                
+                NSUInteger index = [self indexForIndexPath:indexPath];
+                
+                if (NSNotFound != index)
+                {
+                    [self.visibleCells replaceObjectAtIndex:index withObject:cell];
+                }
+                
+                [stillVisibleCells addObject:cell];
+            }
+        }
+    }
+    
+//    NSLog(@"Visible Cells: %d - Total Recycled Cells: %d", [[self visibleCells] count], [self.recycledCells count]);
+    
+    while ([self.recycledCells count] > 10)
+    {
+        [self.recycledCells removeObject:[self.recycledCells anyObject]];
+    }
+    
+    [UIView setAnimationsEnabled:YES];
+}
+
 - (void)tileCellsAnimated:(BOOL)animated
 {
+    [self updateVisibleCells];
+    
     if (animated)
     {
         [UIView animateWithDuration:0.25 
                               delay:0 
                             options:(UIViewAnimationOptionBeginFromCurrentState | UIViewAnimationOptionAllowAnimatedContent | UIViewAnimationOptionAllowUserInteraction)
                          animations:^(void) {
-                             [self tileCells];
+                             [self layoutCells];
                          } 
                          completion:^(BOOL finished) {
                              
@@ -555,13 +692,13 @@
     }
     else
     {
-        [self tileCells];
+        [self layoutCells];
     }
 }
 
-- (void)tileCells
+- (void)layoutCells
 {
-    for (RZGridViewCell *cell in self.visibleCells)
+    for (RZGridViewCell *cell in [self visibleCells])
     {
         if (cell != self.selectedCell)
         {
@@ -571,7 +708,7 @@
             
             cell.frame = cellFrame;
         }
-        [self.scrollView addSubview:cell];
+//        [self.scrollView addSubview:cell];
     }
     
     [self.scrollView bringSubviewToFront:self.selectedCell];
@@ -598,6 +735,16 @@
             self.selectedCell = (RZGridViewCell*)gestureRecognizer.view;
             self.selectedStartPath = [self indexPathForCell:(RZGridViewCell *)gestureRecognizer.view];
             self.selectedLastPath = self.selectedStartPath;
+            
+            NSMutableArray *cellIndecies = [NSMutableArray arrayWithCapacity:[self.visibleCells count]];
+            
+            for (int i = 0; i < [self.visibleCells count]; ++i)
+            {
+                [cellIndecies addObject:[NSNumber numberWithInt:i]];
+            }
+            
+            self.reorderedCellsIndexMap = cellIndecies;
+            
             self.reorderTouchOffset = CGPointMake(gestureRecognizer.view.center.x - [gestureRecognizer locationInView:self.scrollView].x, 
                                                   gestureRecognizer.view.center.y - [gestureRecognizer locationInView:self.scrollView].y);
             [self.scrollView bringSubviewToFront:gestureRecognizer.view];
@@ -643,6 +790,7 @@
             }
             
             self.selectedCell = nil;
+            self.reorderedCellsIndexMap = nil;
             self.selectedStartPath = nil;
             self.selectedLastPath = nil;
             break;
@@ -668,16 +816,93 @@
     }
     
     RZGridViewCell *cell = [self.visibleCells objectAtIndex:sourceIndex];
+    NSNumber *index = [self.reorderedCellsIndexMap objectAtIndex:sourceIndex];
     
     [self.visibleCells insertObject:cell atIndex:destinationIndex];
     [self.visibleCells removeObjectAtIndex:removeIndex];
+    [self.reorderedCellsIndexMap insertObject:index atIndex:destinationIndex];
+    [self.reorderedCellsIndexMap removeObjectAtIndex:removeIndex];
     
     [self tileCellsAnimated:YES];
 }
 
+- (NSArray*)indexPathsForItemsInRect:(CGRect)rect
+{
+    NSMutableArray *indexPaths = [NSMutableArray array];
+    
+    if (!CGRectIsEmpty(rect))
+    {
+        CGPoint upperLeft = rect.origin;
+        CGPoint lowerRight = CGPointMake(CGRectGetMaxX(rect)-0.1, CGRectGetMaxY(rect)-0.1);
+        
+        NSIndexPath *upperLeftPath = [self indexPathForItemAtPoint:upperLeft];
+        NSIndexPath *lowerRightPath = [self indexPathForItemAtPoint:lowerRight];
+        
+        for (int section = upperLeftPath.gridSection; section <= lowerRightPath.gridSection; ++section)
+        {
+            CGRect sectionRect = CGRectIntersection([self rectForSection:section], rect);
+            
+            CGPoint sectionUpperLeft = sectionRect.origin;
+            CGPoint sectionLowerRight = CGPointMake(CGRectGetMaxX(sectionRect)-0.1, CGRectGetMaxY(sectionRect)-0.1);
+            
+            NSIndexPath *sectionUpperLeftPath = [self indexPathForItemAtPoint:sectionUpperLeft];
+            NSIndexPath *sectionLowerRightPath = [self indexPathForItemAtPoint:sectionLowerRight];
+            
+            for (int row = sectionUpperLeftPath.gridRow; row <= sectionLowerRightPath.gridRow; ++row)
+            {
+                CGRect rowRect = CGRectIntersection([self rectForRow:row inSection:section], rect);
+                
+                NSInteger firstColumn = [self indexPathForItemAtPoint:rowRect.origin].gridColumn;
+                NSInteger lastColumn = [self indexPathForItemAtPoint:CGPointMake(CGRectGetMaxX(rowRect)-0.1, CGRectGetMaxY(rowRect)-0.1)].gridColumn;
+                
+                for (int column = firstColumn; column <= lastColumn; ++column)
+                {
+                    [indexPaths addObject:[NSIndexPath indexPathForColumn:column andRow:row inSection:section]];
+                }
+            }
+        }
+    }
+    
+    return indexPaths;
+}
+
+- (NSIndexPath*)indexPathForIndex:(NSInteger)index
+{
+    NSIndexPath *indexPath = nil;
+    
+    NSInteger section = NSNotFound;
+    for (int i = 0; i < [self.sectionRanges count]; ++i)
+    {
+        NSRange sectionRange = [self rangeForSection:i];
+        
+        if (NSLocationInRange(index, sectionRange))
+        {
+            section = i;
+            break;
+        }
+    }
+    
+    if (NSNotFound != section)
+    {
+        for (int row = 0; row < [[self.rowRangesBySection objectAtIndex:section] count]; ++row)
+        {
+            NSRange rowRange = [self rangeForRow:row inSection:section];
+            
+            if (NSLocationInRange(index, rowRange))
+            {
+                NSInteger column = index - rowRange.location;
+                indexPath = [NSIndexPath indexPathForColumn:column andRow:row inSection:section];
+                break;
+            }
+        }
+    }
+    
+    return indexPath;
+}
+
 - (NSUInteger)indexForIndexPath:(NSIndexPath*)indexPath
 {
-    NSInteger offset = NSUIntegerMax;
+    NSInteger offset = NSNotFound;
     
     NSRange rowRange = [self rangeForRow:indexPath.gridRow inSection:indexPath.gridSection];
     
@@ -841,6 +1066,7 @@
 
 - (void)updateGridFlagsWithDataSource:(id<RZGridViewDataSource>)dataSource
 {
+    _gridFlags.dataSourceNumberOfItemsInSection = [dataSource respondsToSelector:@selector(gridView:numberOfItemsInSection:)];
     _gridFlags.dataSourceNumberOfRowsInSection = [dataSource respondsToSelector:@selector(gridView:numberOfRowsInSection:)];
     _gridFlags.dataSourceNumberOfColumnsInRow = [dataSource respondsToSelector:@selector(gridView:numberOfColumnsInRow:inSection:)];
     _gridFlags.dataSourceCellForItemAtIndexPath = [dataSource respondsToSelector:@selector(gridView:cellForItemAtIndexPath:)];
@@ -861,7 +1087,7 @@
 
 - (void)scrollViewDidScroll:(UIScrollView *)scrollView
 {
-    
+    [self tileCellsAnimated:NO];
 }
 
 #pragma mark - UIGestureRecognizer Delegate
