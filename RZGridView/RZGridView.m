@@ -1084,11 +1084,37 @@
     _gridFlags.delegateWidthForColumnAtIndexPath = [delegate respondsToSelector:@selector(gridView:widthForColumnAtIndexPath:)];
 }
 
+#pragma mark - Paging Property passthrough
+-(BOOL) isPagingEnabled
+{
+    return self.scrollView.isPagingEnabled;
+}
+
+-(void) setPagingEnabled:(BOOL)pagingEnabled
+{
+    self.scrollView.pagingEnabled = pagingEnabled;
+}
+
+#pragma mark - Content Offset passthrough
+-(CGPoint) contentOffset
+{
+    return self.scrollView.contentOffset;
+}
+
+-(void) setContentOffset:(CGPoint)contentOffset
+{
+    self.scrollView.contentOffset = contentOffset;
+}
+
 #pragma mark - UIScrollView Delegate
 
 - (void)scrollViewDidScroll:(UIScrollView *)scrollView
 {
     [self tileCellsAnimated:NO];
+    
+    if ([self.delegate respondsToSelector:@selector(gridViewDidScroll:)]) {
+        [self.delegate gridViewDidScroll:self];
+    }
 }
 
 #pragma mark - UIGestureRecognizer Delegate

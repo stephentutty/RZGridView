@@ -46,12 +46,15 @@
 
 @property (nonatomic, assign) UIEdgeInsets contentInset;
 
-@property (nonatomic, assign) id<RZGridViewDataSource> dataSource;
-@property (nonatomic, assign) id<RZGridViewDelegate> delegate;
+@property (nonatomic, assign) IBOutlet id<RZGridViewDataSource> dataSource;
+@property (nonatomic, assign) IBOutlet id<RZGridViewDelegate> delegate;
 
 @property (nonatomic, assign) NSTimeInterval reorderLongPressDelay;             // defaults to 0.5
 
 @property (retain, readonly) RZGridViewCell *selectedCell;
+
+@property(nonatomic, getter=isPagingEnabled) BOOL pagingEnabled;
+@property(nonatomic) CGPoint contentOffset;
 
 - (void)reloadData;
 
@@ -115,6 +118,8 @@
 
 - (CGFloat)gridView:(RZGridView *)gridView heightForRowAtIndexPath:(NSIndexPath*)indexPath;     // Default is 200.0 if not implemented
 - (CGFloat)gridView:(RZGridView *)gridView widthForColumnAtIndexPath:(NSIndexPath *)indexPath;  // Default is RZGRIDVIEW_AUTO_WIDTH if not implemented
+
+- (void)gridViewDidScroll:(RZGridView *)gridView;
 
 @end
 
