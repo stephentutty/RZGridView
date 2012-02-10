@@ -13,6 +13,12 @@
 @protocol RZGridViewDelegate;
 @protocol RZGridViewDataSource;
 
+// Constants for Section Arrangement
+typedef enum {
+    RZGridViewSectionArrangementVertical,
+    RZGridViewSectionArrangementHorizontal
+} RZGridViewSectionArrangement;
+
 @interface RZGridView : UIView <UIScrollViewDelegate, UIGestureRecognizerDelegate> {
     @private
     id<RZGridViewDataSource> _dataSource;
@@ -41,6 +47,7 @@
         unsigned int delegateDidSelectItemAtIndexPath:1;
         unsigned int delegateHeightForRowAtIndexPath:1;
         unsigned int delegateWidthForColumnAtIndexPath:1;
+        unsigned int delegateSectionArrangementForGridView:1;
     } _gridFlags;
 }
 
@@ -52,9 +59,9 @@
 @property (nonatomic, assign) NSTimeInterval reorderLongPressDelay;             // defaults to 0.5
 
 @property (retain, readonly) RZGridViewCell *selectedCell;
-
-@property(nonatomic, getter=isPagingEnabled) BOOL pagingEnabled;
-@property(nonatomic) CGPoint contentOffset;
+@property (nonatomic, assign) RZGridViewSectionArrangement sectionArrangement;  // defaults to RZGridViewSectionArrangementVertical
+@property (nonatomic, getter=isPagingEnabled) BOOL pagingEnabled;
+@property (nonatomic) CGPoint contentOffset;
 
 - (void)reloadData;
 
@@ -118,6 +125,7 @@
 
 - (CGFloat)gridView:(RZGridView *)gridView heightForRowAtIndexPath:(NSIndexPath*)indexPath;     // Default is 200.0 if not implemented
 - (CGFloat)gridView:(RZGridView *)gridView widthForColumnAtIndexPath:(NSIndexPath *)indexPath;  // Default is RZGRIDVIEW_AUTO_WIDTH if not implemented
+- (RZGridViewSectionArrangement)sectionArrangementForGridView:(RZGridView*)gridView;            // Default is RZGridViewArrangementVertical if not implemented
 
 - (void)gridViewDidScroll:(RZGridView *)gridView;
 

@@ -50,6 +50,8 @@
 - (NSUInteger)indexForIndexPath:(NSIndexPath*)indexPath;
 - (NSRange)rangeForSection:(NSUInteger)section;
 - (NSRange)rangeForRow:(NSUInteger)row inSection:(NSUInteger)section;
+- (CGFloat)widthForSection:(NSUInteger)section;
+- (CGFloat)widthForRow:(NSUInteger)row inSection:(NSUInteger)section;
 
 - (void)updateSelectedCellIndex;
 - (void)scrollIfNeededUsingDelta:(CGPoint)delta;
@@ -67,6 +69,7 @@
 @synthesize delegate = _delegate;
 
 @synthesize reorderLongPressDelay = _reorderLongPressDelay;
+@synthesize sectionArrangement = _sectionArrangement;
 
 @synthesize visibleCells = _visibleCells;
 @synthesize recycledCells = _recycledCells;
@@ -125,6 +128,7 @@
 {
     self.rowHeight = RZGRIDVIEW_DEFAULT_HEIGHT;
     self.colWidth = RZGRIDVIEW_DEFAULT_WIDTH;
+    self.sectionArrangement = RZGridViewSectionArrangementVertical;
     self.totalSections = 1;
     self.totalRows = 0;
     self.totalItems = 0;
@@ -219,22 +223,37 @@
 
 - (CGRect)rectForSection:(NSInteger)section
 {
+    CGFloat xOffset = 0;
     CGFloat yOffset = 0;
-    
-    for (int sectionIndex = 0; sectionIndex < section; ++sectionIndex)
-    {
-        yOffset += [self rectForHeaderInSection:sectionIndex].size.height;
-        yOffset += [self.dataSource gridView:self numberOfRowsInSection:sectionIndex] * self.rowHeight;
-        yOffset += [self rectForFooterInSection:sectionIndex].size.height;
-    }
-    
+    CGFloat width = 0;
     CGFloat height = 0;
+    
+    if (RZGridViewSectionArrangementVertical == self.sectionArrangement)
+    {
+        for (int sectionIndex = 0; sectionIndex < section; ++sectionIndex)
+        {
+            yOffset += [self rectForHeaderInSection:sectionIndex].size.height;
+            yOffset += [self.dataSource gridView:self numberOfRowsInSection:sectionIndex] * self.rowHeight;
+            yOffset += [self rectForFooterInSection:sectionIndex].size.height;
+        }
+        
+        width = self.scrollView.bounds.size.width;
+    }
+    else
+    {
+        for (int sectionIndex = 0; sectionIndex < section; ++sectionIndex)
+        {
+            xOffset += [self widthForSection:sectionIndex];
+        }
+        
+        width = [self widthForSection:section];
+    }
     
     height += [self rectForHeaderInSection:section].size.height;
     height += [self.dataSource gridView:self numberOfRowsInSection:section] * self.rowHeight;
     height += [self rectForFooterInSection:section].size.height;
     
-    return CGRectMake(0, yOffset, self.scrollView.contentSize.width, height);
+    return CGRectMake(xOffset, yOffset, width, height);
 }
 
 - (CGRect)rectForHeaderInSection:(NSInteger)section
@@ -265,7 +284,7 @@
     
     CGFloat columnWidth = rowRect.size.width / (CGFloat)columnsInCurrentRow;
     
-    CGRect itemRect = CGRectMake((CGFloat)indexPath.gridColumn * columnWidth, rowRect.origin.y, columnWidth, rowRect.size.height);
+    CGRect itemRect = CGRectMake(rowRect.origin.x + ((CGFloat)indexPath.gridColumn * columnWidth), rowRect.origin.y, columnWidth, rowRect.size.height);
     
     return itemRect;
 }
@@ -288,7 +307,8 @@
             break;
         }
         
-        if (point.y > CGRectGetMinY(sectionRect))
+        if ((self.sectionArrangement == RZGridViewSectionArrangementVertical && point.y > CGRectGetMinY(sectionRect)) ||
+            (self.sectionArrangement == RZGridViewSectionArrangementHorizontal && point.x > CGRectGetMinX(sectionRect)))
         {
             min = section + 1;
         }
@@ -474,7 +494,7 @@
     NSInteger numSections = 1;
     NSInteger maxCols = 0;
     
-    if ([self.dataSource respondsToSelector:@selector(numberOfSectionsInGridView:)])
+    if (_gridFlags.dataSourceNumberOfSectionsInGridView)
     {
         numSections = [self.dataSource numberOfSectionsInGridView:self];
     }
@@ -561,9 +581,19 @@
     self.colWidth = width;
     self.rowHeight = height;
     
-    CGSize contentSize = CGSizeMake(self.maxCols * self.colWidth, self.totalRows * self.rowHeight);
+    if (_gridFlags.delegateSectionArrangementForGridView)
+    {
+        self.sectionArrangement = [self.delegate sectionArrangementForGridView:self];
+    }
     
-    self.scrollView.contentSize = contentSize;
+    CGRect contentRect = CGRectNull;
+    
+    for (int i = 0; i < self.totalSections; ++i)
+    {
+        contentRect = CGRectUnion(contentRect, [self rectForSection:i]);
+    }
+    
+    self.scrollView.contentSize = contentRect.size;
     
     if (CGPointEqualToPoint(self.scrollView.contentOffset, CGPointZero))
     {
@@ -950,6 +980,36 @@
     return NSMakeRange(0, 0);
 }
 
+- (CGFloat)widthForSection:(NSUInteger)section
+{
+    if (!_gridFlags.delegateWidthForColumnAtIndexPath)
+    {
+        return self.bounds.size.width;
+    }
+    
+    CGFloat maxWidth = 0.0;
+    
+    NSUInteger rows = [[self.rowRangesBySection objectAtIndex:section] count];
+    for (int i = 0; i < rows; ++i)
+    {
+        maxWidth = MAX(maxWidth, [self widthForRow:i inSection:section]);
+    }
+    
+    return maxWidth;
+}
+
+- (CGFloat)widthForRow:(NSUInteger)row inSection:(NSUInteger)section
+{
+    if (!_gridFlags.delegateWidthForColumnAtIndexPath)
+    {
+        return self.bounds.size.width;
+    }
+    
+    NSRange rowRange = [[[self.rowRangesBySection objectAtIndex:section] objectAtIndex:row] rangeValue];
+    
+    return self.colWidth * rowRange.length;
+}
+
 - (void)updateSelectedCellIndex
 {
     NSIndexPath *currentIndexPath = [self indexPathForItemAtPoint:self.selectedCell.center];
@@ -1082,6 +1142,7 @@
     _gridFlags.delegateDidSelectItemAtIndexPath = [delegate respondsToSelector:@selector(gridView:didSelectItemAtIndexPath:)];
     _gridFlags.delegateHeightForRowAtIndexPath = [delegate respondsToSelector:@selector(gridView:heightForRowAtIndexPath:)];
     _gridFlags.delegateWidthForColumnAtIndexPath = [delegate respondsToSelector:@selector(gridView:widthForColumnAtIndexPath:)];
+    _gridFlags.delegateSectionArrangementForGridView = [delegate respondsToSelector:@selector(sectionArrangementForGridView:)];
 }
 
 #pragma mark - Paging Property passthrough
