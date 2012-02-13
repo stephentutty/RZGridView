@@ -237,7 +237,7 @@
             yOffset += [self rectForFooterInSection:sectionIndex].size.height;
         }
         
-        width = self.scrollView.bounds.size.width;
+        width = [self widthForSection:section];
     }
     else
     {
