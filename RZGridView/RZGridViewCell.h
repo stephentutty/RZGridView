@@ -17,7 +17,7 @@ typedef enum {
     
 }
 
-@property (copy, readonly, nonatomic) NSString *reuseIdentifier;
+@property (copy, nonatomic) NSString *reuseIdentifier;
 
 @property (retain, readonly, nonatomic) UIImageView *imageView;
 @property (retain, readonly, nonatomic) UIView *contentView;

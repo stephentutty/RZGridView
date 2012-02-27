@@ -12,7 +12,6 @@
 @interface RZGridViewCell ()
 
 @property (assign, nonatomic) RZGridViewCellStyle style;
-@property (copy, readwrite, nonatomic) NSString *reuseIdentifier;
 
 @property (retain, readwrite, nonatomic) UIImageView *imageView;
 @property (retain, readwrite, nonatomic) UIView *contentView;
