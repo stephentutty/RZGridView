@@ -10,7 +10,8 @@
 
 #import "RZGridViewCell.h"
 
-@protocol RZGridViewDelegate;
+@class RZGridView;
+
 @protocol RZGridViewDataSource;
 
 // Constants for Section Arrangement
@@ -19,15 +20,36 @@ typedef enum {
     RZGridViewSectionArrangementHorizontal
 } RZGridViewSectionArrangement;
 
-@interface RZGridView : UIView <UIScrollViewDelegate, UIGestureRecognizerDelegate> {
+// Constants for Auto-sizing of row height and column width
+#define RZGRIDVIEW_AUTO_HEIGHT CGFLOAT_MAX
+#define RZGRIDVIEW_AUTO_WIDTH  CGFLOAT_MAX
+
+#define RZGRIDVIEW_DEFAULT_HEIGHT 200.0
+#define RZGRIDVIEW_DEFAULT_WIDTH  RZGRIDVIEW_AUTO_WIDTH
+
+// Grid View Delegate Protocol
+@protocol RZGridViewDelegate <NSObject, UIScrollViewDelegate>
+
+@optional
+
+- (void)gridView:(RZGridView*)gridView didSelectItemAtIndexPath:(NSIndexPath*)indexPath;
+
+- (CGFloat)gridView:(RZGridView *)gridView heightForRowAtIndexPath:(NSIndexPath*)indexPath;     // Default is 200.0 if not implemented
+- (CGFloat)gridView:(RZGridView *)gridView widthForColumnAtIndexPath:(NSIndexPath *)indexPath;  // Default is RZGRIDVIEW_AUTO_WIDTH if not implemented
+- (RZGridViewSectionArrangement)sectionArrangementForGridView:(RZGridView*)gridView;            // Default is RZGridViewArrangementVertical if not implemented
+
+- (void)gridViewDidScroll:(RZGridView *)gridView;
+
+@end
+
+@interface RZGridView : UIScrollView <UIScrollViewDelegate, UIGestureRecognizerDelegate> {
     @private
     id<RZGridViewDataSource> _dataSource;
-    id<RZGridViewDelegate> _delegate;
+    id<RZGridViewDelegate> _gridDelegate;
     CGFloat _rowHeight;
     
     NSMutableArray *_visibleCells;
     
-    UIScrollView *_scrollView;
     NSMutableArray *_sectionRanges;
     NSMutableArray *_rowRangesBySection;
     
@@ -48,10 +70,21 @@ typedef enum {
         unsigned int delegateHeightForRowAtIndexPath:1;
         unsigned int delegateWidthForColumnAtIndexPath:1;
         unsigned int delegateSectionArrangementForGridView:1;
+        unsigned int delegateScrollViewDidScroll:1;
+        unsigned int delegateScrollViewDidZoom:1;
+        unsigned int delegateScrollViewWillBeginDragging:1;
+        unsigned int delegateScrollViewWIllEndDragging:1;
+        unsigned int delegateScrollViewDidEndDragging:1;
+        unsigned int delegateScrollViewWillBeginDecelerating:1;
+        unsigned int delegateScrollViewDidEndDecelerating:1;
+        unsigned int delegateScrollViewDidEndScrollingAnimation:1;
+        unsigned int delegateViewForZoomingInScrollView:1;
+        unsigned int delegateScrollViewWillBeginZooming:1;
+        unsigned int delegateScrollViewDidEndZooming:1;
+        unsigned int delegateScrollViewShouldScrollToTop:1;
+        unsigned int delegateScrollViewDidScrollToTop:1;
     } _gridFlags;
 }
-
-@property (nonatomic, assign) UIEdgeInsets contentInset;
 
 @property (nonatomic, assign) IBOutlet id<RZGridViewDataSource> dataSource;
 @property (nonatomic, assign) IBOutlet id<RZGridViewDelegate> delegate;
@@ -60,8 +93,6 @@ typedef enum {
 
 @property (retain, readonly) RZGridViewCell *selectedCell;
 @property (nonatomic, assign) RZGridViewSectionArrangement sectionArrangement;  // defaults to RZGridViewSectionArrangementVertical
-@property (nonatomic, getter=isPagingEnabled) BOOL pagingEnabled;
-@property (nonatomic) CGPoint contentOffset;
 
 - (void)reloadData;
 
@@ -108,29 +139,6 @@ typedef enum {
 - (void)gridView:(RZGridView*)gridView moveItemAtIndexPath:(NSIndexPath *)sourceIndexPath toIndexPath:(NSIndexPath *)destinationIndexPath;
 
 @end
-
-// Constants for Auto-sizing of row height and column width
-#define RZGRIDVIEW_AUTO_HEIGHT CGFLOAT_MAX
-#define RZGRIDVIEW_AUTO_WIDTH  CGFLOAT_MAX
-
-#define RZGRIDVIEW_DEFAULT_HEIGHT 200.0
-#define RZGRIDVIEW_DEFAULT_WIDTH  RZGRIDVIEW_AUTO_WIDTH
-
-// Grid View Delegate Protocol
-@protocol RZGridViewDelegate <NSObject>
-
-@optional
-
-- (void)gridView:(RZGridView*)gridView didSelectItemAtIndexPath:(NSIndexPath*)indexPath;
-
-- (CGFloat)gridView:(RZGridView *)gridView heightForRowAtIndexPath:(NSIndexPath*)indexPath;     // Default is 200.0 if not implemented
-- (CGFloat)gridView:(RZGridView *)gridView widthForColumnAtIndexPath:(NSIndexPath *)indexPath;  // Default is RZGRIDVIEW_AUTO_WIDTH if not implemented
-- (RZGridViewSectionArrangement)sectionArrangementForGridView:(RZGridView*)gridView;            // Default is RZGridViewArrangementVertical if not implemented
-
-- (void)gridViewDidScroll:(RZGridView *)gridView;
-
-@end
-
 
 // This category provides convenience methods to make it easier to use an NSIndexPath to represent a section, row, and column
 @interface NSIndexPath (RZGridView)

@@ -13,9 +13,10 @@
 @property (nonatomic, retain, getter = _visibleCells) NSMutableArray *visibleCells;
 @property (nonatomic, retain) NSMutableSet *recycledCells;
 @property (retain, readwrite) RZGridViewCell *selectedCell;
+@property (nonatomic, retain) UITapGestureRecognizer *cellTapGestureRecognizer;
 @property (nonatomic, retain) NSMutableArray *reorderedCellsIndexMap;
 
-@property (nonatomic, retain) UIScrollView *scrollView;
+@property (nonatomic, assign) id<RZGridViewDelegate> gridDelegate;
 @property (nonatomic, retain) NSMutableArray *sectionRanges;
 @property (nonatomic, retain) NSMutableArray *rowRangesBySection;
 
@@ -66,7 +67,6 @@
 @implementation RZGridView
 
 @synthesize dataSource = _dataSource;
-@synthesize delegate = _delegate;
 
 @synthesize reorderLongPressDelay = _reorderLongPressDelay;
 @synthesize sectionArrangement = _sectionArrangement;
@@ -74,9 +74,10 @@
 @synthesize visibleCells = _visibleCells;
 @synthesize recycledCells = _recycledCells;
 @synthesize selectedCell = _selectedCell;
+@synthesize cellTapGestureRecognizer = _cellTapGestureRecognizer;
 @synthesize reorderedCellsIndexMap = _reorderedCellsIndexMap;
 
-@synthesize scrollView = _scrollView;
+@synthesize gridDelegate = _gridDelegate;
 @synthesize sectionRanges = _sectionRanges;
 @synthesize rowRangesBySection = _rowRangesBySection;
 
@@ -114,7 +115,6 @@
     [_visibleCells release];
     [_selectedCell release];
     
-    [_scrollView release];
     [_sectionRanges release];
     [_rowRangesBySection release];
     
@@ -135,27 +135,25 @@
     self.maxCols = 0;
     self.reorderLongPressDelay = 0.5;
     self.scrolling = NO;
+    self.selectedCell = nil;
     
     self.recycledCells = [NSMutableSet set];
     
-    self.scrollView = [[[UIScrollView alloc] initWithFrame:self.bounds] autorelease];
-    self.scrollView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
-    self.scrollView.multipleTouchEnabled = NO;
-    self.scrollView.delegate = self;
-    //self.scrollView.backgroundColor = [UIColor scrollViewTexturedBackgroundColor];
+    self.multipleTouchEnabled = NO;
+    [super setDelegate:self];
     
     UITapGestureRecognizer *selectTapGesture = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(gridTapped:)];
     selectTapGesture.numberOfTapsRequired = 1;
     selectTapGesture.numberOfTouchesRequired = 1;
     selectTapGesture.cancelsTouchesInView = NO;
-    [self.scrollView addGestureRecognizer:selectTapGesture];
+    self.cellTapGestureRecognizer = selectTapGesture;
+    [self addGestureRecognizer:selectTapGesture];
     [selectTapGesture release];
     
     [self loadData];
     [self configureScrollView];
     [self tileCellsAnimated:NO];
     
-    [self addSubview:self.scrollView];
 }
 
 - (void)layoutSubviews
@@ -179,28 +177,27 @@
     [self reloadData];
 }
 
+- (id<RZGridViewDelegate>)delegate
+{
+    return self.gridDelegate;
+}
+
 - (void)setDelegate:(id<RZGridViewDelegate>)delegate
 {
-    if (delegate == _delegate)
+    if (delegate == self.gridDelegate)
     {
         return;
     }
+    else if (delegate == (id)self)
+    {
+        [super setDelegate:delegate];
+        return;
+    }
     
-    _delegate = delegate;
+    self.gridDelegate = delegate;
     
-    [self updateGridFlagsWithDelegate:_delegate];
+    [self updateGridFlagsWithDelegate:delegate];
     [self reloadData];
-}
-
-- (UIEdgeInsets)contentInset
-{
-    return self.scrollView.contentInset;
-}
-
-- (void)setContentInset:(UIEdgeInsets)contentInset
-{
-    self.scrollView.contentInset = contentInset;
-    self.scrollView.scrollIndicatorInsets = contentInset;
 }
 
 - (void)reloadData
@@ -593,11 +590,11 @@
         contentRect = CGRectUnion(contentRect, [self rectForSection:i]);
     }
     
-    self.scrollView.contentSize = contentRect.size;
+    self.contentSize = contentRect.size;
     
-    if (CGPointEqualToPoint(self.scrollView.contentOffset, CGPointZero))
+    if (CGPointEqualToPoint(self.contentOffset, CGPointZero))
     {
-        self.scrollView.contentOffset = CGPointMake(-self.scrollView.contentInset.left, -self.scrollView.contentInset.top);
+        self.contentOffset = CGPointMake(-self.contentInset.left, -self.contentInset.top);
     }
 }
 
@@ -605,7 +602,7 @@
 {
     [UIView setAnimationsEnabled:NO];
     
-    CGRect visibleRect = CGRectIntersection((CGRect){CGPointZero, self.scrollView.contentSize}, CGRectInset(self.scrollView.bounds, -self.colWidth, -self.rowHeight));
+    CGRect visibleRect = CGRectIntersection((CGRect){CGPointZero, self.contentSize}, CGRectInset(self.bounds, -self.colWidth, -self.rowHeight));
     
     NSArray *currentVisibleIndexPaths = [self indexPathsForVisibleItems];
     NSArray *stillVisibleIndexPaths = [self indexPathsForItemsInRect:visibleRect];
@@ -653,7 +650,7 @@
         }
         else
         {
-            if (self.selectedCell)
+            if (self.selectedCell != nil)
             {
                 NSInteger oldIndex = [self indexForIndexPath:indexPath];
                 NSInteger newIndex = [[self.reorderedCellsIndexMap objectAtIndex:oldIndex] integerValue];
@@ -680,7 +677,7 @@
                 cell.userInteractionEnabled = YES;
                 cell.clipsToBounds = YES;
                 
-                [self.scrollView addSubview:cell];
+                [self addSubview:cell];
                 
                 NSUInteger index = [self indexForIndexPath:indexPath];
                 
@@ -742,14 +739,14 @@
 //        [self.scrollView addSubview:cell];
     }
     
-    [self.scrollView bringSubviewToFront:self.selectedCell];
+    [self bringSubviewToFront:self.selectedCell];
     
     [self setNeedsDisplay];
 }
 
 - (void)gridTapped:(UITapGestureRecognizer*)gestureRecognizer
 {
-    NSIndexPath *indexPath = [self indexPathForItemAtPoint:[gestureRecognizer locationInView:self.scrollView]];
+    NSIndexPath *indexPath = [self indexPathForItemAtPoint:[gestureRecognizer locationInView:self]];
     
     if (indexPath && _gridFlags.delegateDidSelectItemAtIndexPath)
     {
@@ -776,9 +773,9 @@
             
             self.reorderedCellsIndexMap = cellIndecies;
             
-            self.reorderTouchOffset = CGPointMake(gestureRecognizer.view.center.x - [gestureRecognizer locationInView:self.scrollView].x, 
-                                                  gestureRecognizer.view.center.y - [gestureRecognizer locationInView:self.scrollView].y);
-            [self.scrollView bringSubviewToFront:gestureRecognizer.view];
+            self.reorderTouchOffset = CGPointMake(gestureRecognizer.view.center.x - [gestureRecognizer locationInView:self].x, 
+                                                  gestureRecognizer.view.center.y - [gestureRecognizer locationInView:self].y);
+            [self bringSubviewToFront:gestureRecognizer.view];
             [UIView animateWithDuration:0.2 animations:^(void) {
                 gestureRecognizer.view.transform = CGAffineTransformMakeScale(1.25, 1.25);
                 gestureRecognizer.view.alpha = 0.75;
@@ -788,7 +785,7 @@
         case UIGestureRecognizerStateChanged:
             oldCenter = self.selectedCell.center;
             
-            self.selectedCell.center = CGPointApplyAffineTransform([gestureRecognizer locationInView:self.scrollView], CGAffineTransformMakeTranslation(self.reorderTouchOffset.x, self.reorderTouchOffset.y));
+            self.selectedCell.center = CGPointApplyAffineTransform([gestureRecognizer locationInView:self], CGAffineTransformMakeTranslation(self.reorderTouchOffset.x, self.reorderTouchOffset.y));
             
             CGPoint delta = CGPointMake(self.selectedCell.center.x - oldCenter.x, self.selectedCell.center.y - oldCenter.y);
             
@@ -1025,31 +1022,31 @@
 {
     @synchronized(self)
     {
-        if (!self.scrolling && self.selectedCell && (self.scrollView.contentSize.width > self.scrollView.bounds.size.width || self.scrollView.contentSize.height > self.scrollView.bounds.size.height))
+        if (!self.scrolling && self.selectedCell && (self.contentSize.width > self.bounds.size.width || self.contentSize.height > self.bounds.size.height))
         {
             CGPoint locationInBounds = [self.selectedCell.superview convertPoint:self.selectedCell.center toView:self];
-            CGFloat xMinBoundry = self.selectedCell.bounds.size.width / 2.0;
-            CGFloat xMaxBounrdy = self.bounds.size.width - xMinBoundry;
-            CGFloat yMinBoundry = self.selectedCell.bounds.size.height / 2.0;
-            CGFloat yMaxBoundry = self.bounds.size.height - yMinBoundry;
+            CGFloat xMinBoundry = self.bounds.origin.x + self.selectedCell.bounds.size.width / 2.0;
+            CGFloat xMaxBounrdy = self.bounds.origin.x + self.bounds.size.width - xMinBoundry;
+            CGFloat yMinBoundry = self.bounds.origin.y + self.selectedCell.bounds.size.height / 2.0;
+            CGFloat yMaxBoundry = self.bounds.origin.y + self.bounds.size.height - yMinBoundry;
             
             CGFloat xOffset = 0.0;
             CGFloat yOffset = 0.0;
             CGFloat xSpeed = self.colWidth * 0.30;// self.scrollView.bounds.size.width * 0.10;
             CGFloat ySpeed = self.rowHeight * 0.30;//self.scrollView.bounds.size.height * 0.10;
             
-            BOOL canScrollX = self.scrollView.contentSize.width > self.scrollView.bounds.size.width;
-            BOOL canScrollY = self.scrollView.contentSize.height > self.scrollView.bounds.size.height;
+            BOOL canScrollX = self.contentSize.width > self.bounds.size.width;
+            BOOL canScrollY = self.contentSize.height > self.bounds.size.height;
             
             if (canScrollX)
             {
                 if (locationInBounds.x < xMinBoundry && delta.x < 1.0)
                 {
-                    xOffset = -xSpeed * (1.0 - locationInBounds.x/self.bounds.size.width);
+                    xOffset = -xSpeed * (1.0 - (locationInBounds.x - self.contentOffset.x)/self.bounds.size.width);
                 }
                 else if (locationInBounds.x > xMaxBounrdy && delta.x > -1.0)
                 {
-                    xOffset = xSpeed * (locationInBounds.x/self.bounds.size.width);
+                    xOffset = xSpeed * ((locationInBounds.x - self.contentOffset.x)/self.bounds.size.width);
                 }
             }
             
@@ -1057,19 +1054,19 @@
             {
                 if (locationInBounds.y < yMinBoundry && delta.y < 1.0)
                 {
-                    yOffset = -ySpeed * (1.0 - locationInBounds.y/self.bounds.size.height);
+                    yOffset = -ySpeed * (1.0 - (locationInBounds.y - self.contentOffset.y)/self.bounds.size.height);
                 }
                 else if (locationInBounds.y > yMaxBoundry && delta.y > -1.0)
                 {
-                    yOffset = ySpeed * (locationInBounds.y/self.bounds.size.height);
+                    yOffset = ySpeed * ((locationInBounds.y - self.contentOffset.y)/self.bounds.size.height);
                 }
             }
             
-            CGPoint scrollOffset = self.scrollView.contentOffset;
-            CGFloat minX = - self.scrollView.contentInset.left;
-            CGFloat minY = - self.scrollView.contentInset.top;
-            CGFloat maxX = (self.scrollView.contentSize.width + self.scrollView.contentInset.right) - self.scrollView.bounds.size.width;
-            CGFloat maxY = (self.scrollView.contentSize.height + self.scrollView.contentInset.bottom) - self.scrollView.bounds.size.height;
+            CGPoint scrollOffset = self.contentOffset;
+            CGFloat minX = - self.contentInset.left;
+            CGFloat minY = - self.contentInset.top;
+            CGFloat maxX = (self.contentSize.width + self.contentInset.right) - self.bounds.size.width;
+            CGFloat maxY = (self.contentSize.height + self.contentInset.bottom) - self.bounds.size.height;
             
             if (canScrollX)
             {
@@ -1103,10 +1100,10 @@
                                     options:(UIViewAnimationOptionCurveLinear | UIViewAnimationOptionBeginFromCurrentState | UIViewAnimationOptionAllowUserInteraction |
                                         UIViewAnimationOptionAllowAnimatedContent) 
                                  animations:^{
-                                     CGPoint offset = self.scrollView.contentOffset;
+                                     CGPoint offset = self.contentOffset;
                                      offset.x += xOffset;
                                      offset.y += yOffset;
-                                     [self.scrollView setContentOffset:offset animated:NO];
+                                     [self setContentOffset:offset animated:NO];
                                      
                                      CGPoint cellCenter = self.selectedCell.center;
                                      cellCenter.x += xOffset;
@@ -1143,28 +1140,22 @@
     _gridFlags.delegateHeightForRowAtIndexPath = [delegate respondsToSelector:@selector(gridView:heightForRowAtIndexPath:)];
     _gridFlags.delegateWidthForColumnAtIndexPath = [delegate respondsToSelector:@selector(gridView:widthForColumnAtIndexPath:)];
     _gridFlags.delegateSectionArrangementForGridView = [delegate respondsToSelector:@selector(sectionArrangementForGridView:)];
-}
-
-#pragma mark - Paging Property passthrough
--(BOOL) isPagingEnabled
-{
-    return self.scrollView.isPagingEnabled;
-}
-
--(void) setPagingEnabled:(BOOL)pagingEnabled
-{
-    self.scrollView.pagingEnabled = pagingEnabled;
-}
-
-#pragma mark - Content Offset passthrough
--(CGPoint) contentOffset
-{
-    return self.scrollView.contentOffset;
-}
-
--(void) setContentOffset:(CGPoint)contentOffset
-{
-    self.scrollView.contentOffset = contentOffset;
+    
+    // Check UIScrollViewDelegate selectors
+    _gridFlags.delegateScrollViewDidScroll = [delegate respondsToSelector:@selector(scrollViewDidScroll:)];
+    _gridFlags.delegateScrollViewDidZoom = [delegate respondsToSelector:@selector(scrollViewDidZoom:)];
+    _gridFlags.delegateScrollViewWillBeginDragging = [delegate respondsToSelector:@selector(scrollViewWillBeginDragging:)];
+    _gridFlags.delegateScrollViewWIllEndDragging = [delegate respondsToSelector:@selector(scrollViewWillEndDragging:withVelocity:targetContentOffset:)];
+    _gridFlags.delegateScrollViewDidEndDragging = [delegate respondsToSelector:@selector(scrollViewDidEndDragging:willDecelerate:)];
+    _gridFlags.delegateScrollViewWillBeginDecelerating = [delegate respondsToSelector:@selector(scrollViewWillBeginDecelerating:)];
+    _gridFlags.delegateScrollViewDidEndDecelerating = [delegate respondsToSelector:@selector(scrollViewDidEndDecelerating:)];
+    _gridFlags.delegateScrollViewDidEndScrollingAnimation = [delegate respondsToSelector:@selector(scrollViewDidEndScrollingAnimation:)];
+    _gridFlags.delegateViewForZoomingInScrollView = [delegate respondsToSelector:@selector(viewForZoomingInScrollView:)];
+    _gridFlags.delegateScrollViewWillBeginZooming = [delegate respondsToSelector:@selector(scrollViewWillBeginZooming:withView:)];
+    _gridFlags.delegateScrollViewDidEndZooming = [delegate respondsToSelector:@selector(scrollViewDidEndZooming:withView:atScale:)];
+    _gridFlags.delegateScrollViewShouldScrollToTop = [delegate respondsToSelector:@selector(scrollViewShouldScrollToTop:)];
+    _gridFlags.delegateScrollViewDidScrollToTop = [delegate respondsToSelector:@selector(scrollViewDidScrollToTop:)];
+    
 }
 
 #pragma mark - UIScrollView Delegate
@@ -1173,8 +1164,109 @@
 {
     [self tileCellsAnimated:NO];
     
-    if ([self.delegate respondsToSelector:@selector(gridViewDidScroll:)]) {
-        [self.delegate gridViewDidScroll:self];
+    if (_gridFlags.delegateScrollViewDidScroll)
+    {
+        [self.delegate scrollViewDidScroll:scrollView];
+    }
+}
+
+- (void)scrollViewDidZoom:(UIScrollView *)scrollView
+{
+    if (_gridFlags.delegateScrollViewDidZoom)
+    {
+        [self.delegate scrollViewDidZoom:scrollView];
+    }
+}
+
+- (void)scrollViewWillBeginDragging:(UIScrollView *)scrollView
+{
+    if (_gridFlags.delegateScrollViewWillBeginDragging)
+    {
+        [self.delegate scrollViewWillBeginDragging:scrollView];
+    }
+}
+
+- (void)scrollViewWillEndDragging:(UIScrollView *)scrollView withVelocity:(CGPoint)velocity targetContentOffset:(inout CGPoint *)targetContentOffset
+{
+    if (_gridFlags.delegateScrollViewWIllEndDragging)
+    {
+        [self.delegate scrollViewWillEndDragging:scrollView withVelocity:velocity targetContentOffset:targetContentOffset];
+    }
+}
+
+- (void)scrollViewDidEndDragging:(UIScrollView *)scrollView willDecelerate:(BOOL)decelerate
+{
+    if (_gridFlags.delegateScrollViewDidEndDragging)
+    {
+        [self.delegate scrollViewDidEndDragging:scrollView willDecelerate:decelerate];
+    }
+}
+
+- (void)scrollViewWillBeginDecelerating:(UIScrollView *)scrollView
+{
+    if (_gridFlags.delegateScrollViewWillBeginDecelerating)
+    {
+        [self.delegate scrollViewWillBeginDecelerating:scrollView];
+    }
+}
+
+- (void)scrollViewDidEndDecelerating:(UIScrollView *)scrollView
+{
+    if (_gridFlags.delegateScrollViewDidEndDecelerating)
+    {
+        [self.delegate scrollViewDidEndDecelerating:scrollView];
+    }
+}
+
+- (void)scrollViewDidEndScrollingAnimation:(UIScrollView *)scrollView
+{
+    if (_gridFlags.delegateScrollViewDidEndScrollingAnimation)
+    {
+        [self.delegate scrollViewDidEndScrollingAnimation:scrollView];
+    }
+}
+
+- (UIView *)viewForZoomingInScrollView:(UIScrollView *)scrollView
+{
+    if (_gridFlags.delegateViewForZoomingInScrollView)
+    {
+        return [self.delegate viewForZoomingInScrollView:scrollView];
+    }
+    
+    return nil;
+}
+
+- (void)scrollViewWillBeginZooming:(UIScrollView *)scrollView withView:(UIView *)view
+{
+    if (_gridFlags.delegateScrollViewWillBeginZooming)
+    {
+        [self.delegate scrollViewWillBeginZooming:scrollView withView:view];
+    }
+}
+
+- (void)scrollViewDidEndZooming:(UIScrollView *)scrollView withView:(UIView *)view atScale:(float)scale
+{
+    if (_gridFlags.delegateScrollViewDidEndZooming)
+    {
+        [self.delegate scrollViewDidEndZooming:scrollView withView:view atScale:scale];
+    }
+}
+
+- (BOOL)scrollViewShouldScrollToTop:(UIScrollView *)scrollView
+{
+    if (_gridFlags.delegateScrollViewShouldScrollToTop)
+    {
+        return [self.delegate scrollViewShouldScrollToTop:scrollView];
+    }
+    
+    return YES;
+}
+
+- (void)scrollViewDidScrollToTop:(UIScrollView *)scrollView
+{
+    if (_gridFlags.delegateScrollViewDidScrollToTop)
+    {
+        [self.delegate scrollViewDidScrollToTop:scrollView];
     }
 }
 
@@ -1187,19 +1279,24 @@
 
 - (BOOL)gestureRecognizerShouldBegin:(UIGestureRecognizer *)gestureRecognizer
 {
-    @synchronized(self)
+    if (gestureRecognizer == self.cellTapGestureRecognizer)
     {
-        if (_gridFlags.dataSourceMoveItemAtIndexPathToIndexPath)
+        @synchronized(self)
         {
-            if (self.selectedCell == nil)
+            if (_gridFlags.dataSourceMoveItemAtIndexPathToIndexPath)
             {
-                self.selectedCell = (RZGridViewCell*)gestureRecognizer.view;
-                return YES;
+                if (self.selectedCell == nil)
+                {
+                    self.selectedCell = (RZGridViewCell*)gestureRecognizer.view;
+                    return YES;
+                }
             }
+            
+            return NO;
         }
-        
-        return NO;
     }
+    
+    return YES;
 }
 
 @end
