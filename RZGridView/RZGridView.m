@@ -112,6 +112,11 @@
 
 - (void)dealloc
 {
+    self.delegate = nil;
+    [super setDelegate:nil];
+    
+    self.dataSource = nil;
+    
     [_visibleCells release];
     [_selectedCell release];
     
