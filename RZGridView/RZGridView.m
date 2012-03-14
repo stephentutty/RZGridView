@@ -1284,7 +1284,7 @@
 
 - (BOOL)gestureRecognizerShouldBegin:(UIGestureRecognizer *)gestureRecognizer
 {
-    if (gestureRecognizer == self.cellTapGestureRecognizer)
+    if ([gestureRecognizer isKindOfClass:[UILongPressGestureRecognizer class]] && [gestureRecognizer.view isKindOfClass:[RZGridViewCell class]])
     {
         @synchronized(self)
         {
