@@ -112,7 +112,8 @@
 
 - (void)dealloc
 {
-    self.delegate = nil;
+    self.gridDelegate = nil;
+    [self setDelegate:nil];
     [super setDelegate:nil];
     
     self.dataSource = nil;
