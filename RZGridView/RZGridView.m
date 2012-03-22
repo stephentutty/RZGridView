@@ -95,6 +95,8 @@
 
 @synthesize scrolling = _scrolling;
 
+@synthesize shouldPauseReload = _shouldPauseReload;
+
 - (id)initWithFrame:(CGRect)frame
 {
     self = [super initWithFrame:frame];
@@ -708,6 +710,10 @@
 
 - (void)tileCellsAnimated:(BOOL)animated
 {
+    if (self.shouldPauseReload) {
+        return;
+    }
+    
     [self updateVisibleCells];
     
     if (animated)
@@ -726,6 +732,14 @@
     else
     {
         [self layoutCells];
+    }
+}
+
+- (void)setShouldPauseReload:(BOOL)shouldPauseReload
+{
+    _shouldPauseReload = shouldPauseReload;
+    if (!shouldPauseReload) {
+//        [self tileCellsAnimated:NO];
     }
 }
 
@@ -865,7 +879,7 @@
     
     if (!CGRectIsEmpty(rect))
     {
-        CGPoint upperLeft = rect.origin;
+        CGPoint upperLeft = CGPointMake(CGRectGetMinX(rect) + 0.1, CGRectGetMinY(rect) + 0.1);
         CGPoint lowerRight = CGPointMake(CGRectGetMaxX(rect)-0.1, CGRectGetMaxY(rect)-0.1);
         
         NSIndexPath *upperLeftPath = [self indexPathForItemAtPoint:upperLeft];
@@ -875,7 +889,7 @@
         {
             CGRect sectionRect = CGRectIntersection([self rectForSection:section], rect);
             
-            CGPoint sectionUpperLeft = sectionRect.origin;
+            CGPoint sectionUpperLeft = CGPointMake(CGRectGetMinX(sectionRect) + 0.1, CGRectGetMinY(sectionRect) + 0.1);
             CGPoint sectionLowerRight = CGPointMake(CGRectGetMaxX(sectionRect)-0.1, CGRectGetMaxY(sectionRect)-0.1);
             
             NSIndexPath *sectionUpperLeftPath = [self indexPathForItemAtPoint:sectionUpperLeft];
@@ -885,7 +899,7 @@
             {
                 CGRect rowRect = CGRectIntersection([self rectForRow:row inSection:section], rect);
                 
-                NSInteger firstColumn = [self indexPathForItemAtPoint:rowRect.origin].gridColumn;
+                NSInteger firstColumn = [self indexPathForItemAtPoint:CGPointMake(CGRectGetMinX(rowRect) + 0.1, CGRectGetMinY(rowRect) + 0.1)].gridColumn;
                 NSInteger lastColumn = [self indexPathForItemAtPoint:CGPointMake(CGRectGetMaxX(rowRect)-0.1, CGRectGetMaxY(rowRect)-0.1)].gridColumn;
                 
                 for (int column = firstColumn; column <= lastColumn; ++column)

@@ -94,6 +94,8 @@ typedef enum {
 @property (retain, readonly) RZGridViewCell *selectedCell;
 @property (nonatomic, assign) RZGridViewSectionArrangement sectionArrangement;  // defaults to RZGridViewSectionArrangementVertical
 
+@property (nonatomic, assign) BOOL shouldPauseReload;
+
 - (void)reloadData;
 
 - (NSInteger)numberOfSections;
