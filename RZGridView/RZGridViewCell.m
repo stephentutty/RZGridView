@@ -49,6 +49,16 @@
     self.style = RZGridViewCellStyleCustom;
 }
 
+- (id)initWithCoder:(NSCoder *)aDecoder
+{
+    self = [super initWithCoder:aDecoder];
+    if (self) {
+        self.style = RZGridViewCellStyleCustom;
+    }
+    
+    return self;
+}
+
 - (void)dealloc
 {
     [_reuseIdentifier release];
