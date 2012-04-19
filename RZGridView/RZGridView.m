@@ -647,6 +647,9 @@
     
     for (NSIndexPath *indexPath in stillVisibleIndexPaths)
     {
+        if ([self indexForIndexPath:indexPath] == NSNotFound)
+            continue;
+        
         RZGridViewCell *cell = nil;
         
         cell = [self cellForItemAtIndexPath:indexPath];
