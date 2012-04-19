@@ -714,36 +714,36 @@
 - (void)tileCellsAnimated:(BOOL)animated
 {
     if (self.shouldPauseReload) {
-        return;
-    }
-    
-    [self updateVisibleCells];
-    
-    if (animated)
-    {
-        [UIView animateWithDuration:0.25 
-                              delay:0 
-                            options:(UIViewAnimationOptionBeginFromCurrentState | UIViewAnimationOptionAllowAnimatedContent | UIViewAnimationOptionAllowUserInteraction)
-                         animations:^(void) {
-                             [self layoutCells];
-                         } 
-                         completion:^(BOOL finished) {
-                             
-                         }
-         ];
-    }
-    else
-    {
+        // When we pause reload we still want to update the frames of the cells, but not do a datasource call for new contents in -updateVisibleCells
+        
         [self layoutCells];
+    }
+    else {
+        [self updateVisibleCells];
+        
+        if (animated)
+        {
+            [UIView animateWithDuration:0.25 
+                                  delay:0 
+                                options:(UIViewAnimationOptionBeginFromCurrentState | UIViewAnimationOptionAllowAnimatedContent | UIViewAnimationOptionAllowUserInteraction)
+                             animations:^(void) {
+                                 [self layoutCells];
+                             } 
+                             completion:^(BOOL finished) {
+                                 
+                             }
+             ];
+        }
+        else
+        {
+            [self layoutCells];
+        }
     }
 }
 
 - (void)setShouldPauseReload:(BOOL)shouldPauseReload
 {
     _shouldPauseReload = shouldPauseReload;
-    if (!shouldPauseReload) {
-//        [self tileCellsAnimated:NO];
-    }
 }
 
 - (void)layoutCells
