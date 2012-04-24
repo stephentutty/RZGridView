@@ -20,6 +20,10 @@
 @property (nonatomic, retain) NSMutableArray *sectionRanges;
 @property (nonatomic, retain) NSMutableArray *rowRangesBySection;
 
+@property (nonatomic, retain) NSMutableArray *headerTitles;
+@property (nonatomic, retain) NSMutableArray *footerTitles;
+@property (nonatomic, retain) NSMutableArray *headerViews;
+
 @property (nonatomic, assign) CGFloat rowHeight;
 @property (nonatomic, assign) CGFloat colWidth;
 
@@ -43,6 +47,8 @@
 - (void)tileCellsAnimated:(BOOL)animated;
 - (void)layoutCells;
 
+- (void)layoutHeadersAndFooters;
+
 - (void)handleCellPress:(UILongPressGestureRecognizer*)gestureRecognizer;
 - (void)moveItemAtIndexPath:(NSIndexPath*)sourceIndexPath toIndexPath:(NSIndexPath*)destinationIndexPath;
 
@@ -53,6 +59,8 @@
 - (NSRange)rangeForRow:(NSUInteger)row inSection:(NSUInteger)section;
 - (CGFloat)widthForSection:(NSUInteger)section;
 - (CGFloat)widthForRow:(NSUInteger)row inSection:(NSUInteger)section;
+
+- (UILabel*)headerFooterLabelForTitle:(NSString*)title;
 
 - (void)updateSelectedCellIndex;
 - (void)scrollIfNeededUsingDelta:(CGPoint)delta;
@@ -80,6 +88,10 @@
 @synthesize gridDelegate = _gridDelegate;
 @synthesize sectionRanges = _sectionRanges;
 @synthesize rowRangesBySection = _rowRangesBySection;
+
+@synthesize headerTitles = _headerTitles;
+@synthesize footerTitles = _footerTitles;
+@synthesize headerViews = _headerViews;
 
 @synthesize rowHeight = _rowHeight;
 @synthesize colWidth = _colWidth;
@@ -211,6 +223,7 @@
 {
     [self loadData];
     [self configureScrollView];
+    [self layoutHeadersAndFooters];
     [self tileCellsAnimated:NO];
 
 }
@@ -262,6 +275,17 @@
 
 - (CGRect)rectForHeaderInSection:(NSInteger)section
 {
+    if ([self.headerViews objectAtIndex:section] != [NSNull null]){
+        CGRect headerRect = [[self.headerViews objectAtIndex:section] bounds];
+        headerRect.size.height += 2*RZGRIDVIEW_HEADER_PADDING_Y;
+        return headerRect;
+    }
+    else if ([self.headerTitles objectAtIndex:section] != [NSNull null]){
+        CGRect headerRect = [[self.headerTitles objectAtIndex:section] bounds];
+        headerRect.size.height += 2*RZGRIDVIEW_HEADER_PADDING_Y;
+        return headerRect;
+    }
+    
     return CGRectZero;
 }
 
@@ -508,6 +532,9 @@
     self.visibleCells = [NSMutableArray array];
     self.sectionRanges = [NSMutableArray arrayWithCapacity:numSections];
     self.rowRangesBySection = [NSMutableArray arrayWithCapacity:numSections];
+    self.headerTitles = [NSMutableArray arrayWithCapacity:numSections];
+    self.footerTitles = [NSMutableArray arrayWithCapacity:numSections];
+    self.headerViews = [NSMutableArray arrayWithCapacity:numSections];
     
     for (NSInteger section = 0; section < numSections; ++section)
     {
@@ -516,6 +543,32 @@
         NSInteger totalItemsInSection = [self.dataSource gridView:self numberOfItemsInSection:section];
         NSInteger numRows = [self.dataSource gridView:self numberOfRowsInSection:section];
         totalRows += numRows;
+        
+        // header and footer data
+        if (_gridFlags.dataSourceViewForHeaderInSection){
+            UIView *headerView = [self.dataSource gridView:self viewForHeaderInSection:section];
+            [self.headerViews addObject: headerView ? headerView : [NSNull null]];
+            [self.headerTitles addObject:[NSNull null]];
+        }
+        else if (_gridFlags.dataSourceTitleForHeaderInSection){
+            NSString *title = [self.dataSource gridView:self titleForHeaderInSection:section];
+            [self.headerTitles addObject: title ? [self headerFooterLabelForTitle:title] : [NSNull null]];
+            [self.headerViews addObject:[NSNull null]];
+        }
+        else {
+            [self.headerTitles addObject:[NSNull null]];
+            [self.headerViews addObject:[NSNull null]];
+        }
+        
+        // TODO: Footer view?
+        if (_gridFlags.dataSourceTitleForFooterInSection){
+            NSString *title = [self.dataSource gridView:self titleForHeaderInSection:section];
+            [self.footerTitles addObject: title ? [self headerFooterLabelForTitle:title] : [NSNull null]];
+        }
+        else {
+            [self.footerTitles addObject:[NSNull null]];
+        }
+        
         
         [self.rowRangesBySection addObject:[NSMutableArray arrayWithCapacity:numRows]];
         
@@ -603,6 +656,17 @@
     {
         self.contentOffset = CGPointMake(-self.contentInset.left, -self.contentInset.top);
     }
+}
+
+- (UILabel*)headerFooterLabelForTitle:(NSString*)title{
+    UILabel *label = [[UILabel alloc] initWithFrame:CGRectMake(0, 0, 40, 20)];
+    label.font = [UIFont boldSystemFontOfSize:RZGRIDVIEW_HEADER_FONTSIZE];
+    label.textColor = [UIColor blackColor];
+    label.text = title;
+    label.adjustsFontSizeToFitWidth = NO;
+    label.lineBreakMode = UILineBreakModeTailTruncation;
+    [label sizeToFit];
+    return [label autorelease];
 }
 
 - (void)updateVisibleCells
@@ -764,6 +828,36 @@
     [self bringSubviewToFront:self.selectedCell];
     
     [self setNeedsDisplay];
+}
+
+- (void)layoutHeadersAndFooters
+{
+    for (int section=0; section < self.numberOfSections; section++){
+        
+        CGRect sectionRect = [self rectForSection:section];
+        
+        // header
+        UIView *headerView = nil;
+        if ([self.headerViews objectAtIndex:section] != [NSNull null]){
+            headerView = [self.headerViews objectAtIndex:section];
+        }
+        else if ([self.headerTitles objectAtIndex:section] != [NSNull null]){
+            headerView = [self.headerTitles objectAtIndex:section];
+        }
+        
+        if (headerView){
+            [headerView removeFromSuperview];
+            [self addSubview:headerView];
+            
+            CGRect headerFrame = headerView.frame;
+            headerFrame.origin.x = RZGRIDVIEW_HEADER_INSET_X;
+            headerFrame.origin.y = sectionRect.origin.y + RZGRIDVIEW_HEADER_PADDING_Y;
+            headerView.frame = headerFrame;
+        }
+        
+        // TODO: Footer
+        
+    }
 }
 
 - (void)gridTapped:(UITapGestureRecognizer*)gestureRecognizer
@@ -1153,6 +1247,7 @@
     _gridFlags.dataSourceNumberOfSectionsInGridView = [dataSource respondsToSelector:@selector(numberOfSectionsInGridView:)];
     _gridFlags.dataSourceTitleForHeaderInSection = [dataSource respondsToSelector:@selector(gridView:titleForHeaderInSection:)];
     _gridFlags.dataSourceTitleForFooterInSection = [dataSource respondsToSelector:@selector(gridView:titleForFooterInSection:)];
+    _gridFlags.dataSourceViewForHeaderInSection = [dataSource respondsToSelector:@selector(gridView:viewForHeaderInSection:)];
     _gridFlags.dataSourceMoveItemAtIndexPathToIndexPath = [dataSource respondsToSelector:@selector(gridView:moveItemAtIndexPath:toIndexPath:)];
 }
 

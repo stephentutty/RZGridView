@@ -27,6 +27,11 @@ typedef enum {
 #define RZGRIDVIEW_DEFAULT_HEIGHT 200.0
 #define RZGRIDVIEW_DEFAULT_WIDTH  RZGRIDVIEW_AUTO_WIDTH
 
+// Constants for header/footer
+#define RZGRIDVIEW_HEADER_FONTSIZE  18.0
+#define RZGRIDVIEW_HEADER_INSET_X   15.0 // frame inset from left side for header (label or view)
+#define RZGRIDVIEW_HEADER_PADDING_Y 10.0 // padding above and below header (label or view)
+
 // Grid View Delegate Protocol
 @protocol RZGridViewDelegate <NSObject, UIScrollViewDelegate>
 
@@ -65,6 +70,7 @@ typedef enum {
         unsigned int dataSourceNumberOfSectionsInGridView:1;
         unsigned int dataSourceTitleForHeaderInSection:1;
         unsigned int dataSourceTitleForFooterInSection:1;
+        unsigned int dataSourceViewForHeaderInSection:1;
         unsigned int dataSourceMoveItemAtIndexPathToIndexPath:1;
         unsigned int delegateDidSelectItemAtIndexPath:1;
         unsigned int delegateHeightForRowAtIndexPath:1;
@@ -135,6 +141,7 @@ typedef enum {
 
 - (NSString *)gridView:(RZGridView*)gridView titleForHeaderInSection:(NSInteger)section;    
 - (NSString *)gridView:(RZGridView*)gridView titleForFooterInSection:(NSInteger)section;
+- (UIView *)gridView:(RZGridView*)gridView viewForHeaderInSection:(NSInteger)section;
 
 // Data manipulation - reorder / moving support
 
