@@ -721,6 +721,11 @@
         if (cell)
         {
             [stillVisibleCells addObject:cell];
+            
+            if (_gridFlags.delegateWillDisplayCell)
+            {
+                [self.delegate gridView:self willDisplayCell:cell forIndexPath:indexPath];
+            }
         }
         else
         {
@@ -761,6 +766,11 @@
                 }
                 
                 [stillVisibleCells addObject:cell];
+                
+                if (_gridFlags.delegateWillDisplayCell)
+                {
+                    [self.delegate gridView:self willDisplayCell:cell forIndexPath:indexPath];
+                }
             }
         }
     }
@@ -1257,6 +1267,7 @@
     _gridFlags.delegateHeightForRowAtIndexPath = [delegate respondsToSelector:@selector(gridView:heightForRowAtIndexPath:)];
     _gridFlags.delegateWidthForColumnAtIndexPath = [delegate respondsToSelector:@selector(gridView:widthForColumnAtIndexPath:)];
     _gridFlags.delegateSectionArrangementForGridView = [delegate respondsToSelector:@selector(sectionArrangementForGridView:)];
+    _gridFlags.delegateWillDisplayCell = [delegate respondsToSelector:@selector(gridView:willDisplayCell:forIndexPath:)];
     
     // Check UIScrollViewDelegate selectors
     _gridFlags.delegateScrollViewDidScroll = [delegate respondsToSelector:@selector(scrollViewDidScroll:)];
