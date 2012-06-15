@@ -45,6 +45,8 @@ typedef enum {
 
 - (void)gridViewDidScroll:(RZGridView *)gridView;
 
+- (void)gridView:(RZGridView *)gridView willDisplayCell:(RZGridViewCell *)cell forIndexPath:(NSIndexPath *)indexPath;
+
 @end
 
 @interface RZGridView : UIScrollView <UIScrollViewDelegate, UIGestureRecognizerDelegate> {
@@ -89,6 +91,7 @@ typedef enum {
         unsigned int delegateScrollViewDidEndZooming:1;
         unsigned int delegateScrollViewShouldScrollToTop:1;
         unsigned int delegateScrollViewDidScrollToTop:1;
+        unsigned int delegateWillDisplayCell:1;
     } _gridFlags;
 }
 

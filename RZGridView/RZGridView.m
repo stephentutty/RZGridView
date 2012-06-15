@@ -719,6 +719,11 @@
         if (cell)
         {
             [stillVisibleCells addObject:cell];
+            
+            if (_gridFlags.delegateWillDisplayCell)
+            {
+                [self.delegate gridView:self willDisplayCell:cell forIndexPath:indexPath];
+            }
         }
         else
         {
@@ -759,6 +764,11 @@
                 }
                 
                 [stillVisibleCells addObject:cell];
+                
+                if (_gridFlags.delegateWillDisplayCell)
+                {
+                    [self.delegate gridView:self willDisplayCell:cell forIndexPath:indexPath];
+                }
             }
         }
     }
@@ -851,6 +861,7 @@
             CGRect headerFrame = headerView.frame;
             headerFrame.origin.x = RZGRIDVIEW_HEADER_INSET_X;
             headerFrame.origin.y = sectionRect.origin.y + RZGRIDVIEW_HEADER_PADDING_Y;
+            headerFrame.size.width = self.bounds.size.width;
             headerView.frame = headerFrame;
         }
         
@@ -1256,6 +1267,7 @@
     _gridFlags.delegateHeightForRowAtIndexPath = [delegate respondsToSelector:@selector(gridView:heightForRowAtIndexPath:)];
     _gridFlags.delegateWidthForColumnAtIndexPath = [delegate respondsToSelector:@selector(gridView:widthForColumnAtIndexPath:)];
     _gridFlags.delegateSectionArrangementForGridView = [delegate respondsToSelector:@selector(sectionArrangementForGridView:)];
+    _gridFlags.delegateWillDisplayCell = [delegate respondsToSelector:@selector(gridView:willDisplayCell:forIndexPath:)];
     
     // Check UIScrollViewDelegate selectors
     _gridFlags.delegateScrollViewDidScroll = [delegate respondsToSelector:@selector(scrollViewDidScroll:)];
