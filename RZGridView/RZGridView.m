@@ -176,9 +176,7 @@
 }
 
 - (void)layoutSubviews
-{
-    [super layoutSubviews];
-    
+{    
     [self configureScrollView];
     [self tileCellsAnimated:NO];
 }
@@ -751,7 +749,7 @@
                 cell.userInteractionEnabled = YES;
                 cell.clipsToBounds = YES;
                 
-                [self addSubview:cell];
+                [self insertSubview:cell atIndex:0];
                 
                 NSUInteger index = [self indexForIndexPath:indexPath];
                 
@@ -803,6 +801,7 @@
             [self layoutCells];
         }
     }
+    
 }
 
 - (void)setShouldPauseReload:(BOOL)shouldPauseReload
@@ -847,7 +846,7 @@
         
         if (headerView){
             [headerView removeFromSuperview];
-            [self addSubview:headerView];
+            [self insertSubview:headerView atIndex:0];
             
             CGRect headerFrame = headerView.frame;
             headerFrame.origin.x = RZGRIDVIEW_HEADER_INSET_X;
