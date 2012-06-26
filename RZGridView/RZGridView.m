@@ -47,6 +47,7 @@
 - (void)updateVisibleCells;
 - (void)tileCellsAnimated:(BOOL)animated;
 - (void)layoutCells;
+- (void)computeSectionRects;
 
 - (void)layoutHeadersAndFooters;
 
@@ -60,7 +61,6 @@
 - (NSRange)rangeForRow:(NSUInteger)row inSection:(NSUInteger)section;
 - (CGFloat)widthForSection:(NSUInteger)section;
 - (CGFloat)widthForRow:(NSUInteger)row inSection:(NSUInteger)section;
-- (CGRect)computeRectForSection:(NSUInteger)section;
 
 - (UILabel*)headerFooterLabelForTitle:(NSString*)title;
 
@@ -279,7 +279,6 @@
     height += [self rectForFooterInSection:section].size.height;
     
     CGRect sectionRect = CGRectMake(xOffset, yOffset, width, height);
-    [self.sectionRects insertObject:[NSValue valueWithCGRect:sectionRect] atIndex:section];
     return sectionRect;
 }
 
@@ -542,7 +541,6 @@
     self.visibleCells = [NSMutableArray array];
     self.sectionRanges = [NSMutableArray arrayWithCapacity:numSections];
     self.rowRangesBySection = [NSMutableArray arrayWithCapacity:numSections];
-    self.sectionRects = [NSMutableArray arrayWithCapacity:numSections];
     self.headerTitles = [NSMutableArray arrayWithCapacity:numSections];
     self.footerTitles = [NSMutableArray arrayWithCapacity:numSections];
     self.headerViews = [NSMutableArray arrayWithCapacity:numSections];
@@ -581,9 +579,7 @@
         }
         
         [self.rowRangesBySection addObject:[NSMutableArray arrayWithCapacity:numRows]];
-        
-        [self.sectionRects addObject:[NSValue valueWithCGRect:[self computeRectForSection:section]]];
-        
+            
         for (NSInteger row = 0; row < numRows; ++row)
         {
             NSInteger rowOffset = totalItems;
@@ -612,7 +608,7 @@
         
         [self.sectionRanges addObject:[NSValue valueWithRange:NSMakeRange(sectionOffset, itemsInSection)]];
     }
-    
+        
     self.totalItems = totalItems;
     self.totalRows = totalRows;
     self.totalSections = numSections;
@@ -626,6 +622,7 @@
 {
     CGFloat width = RZGRIDVIEW_DEFAULT_WIDTH;
     CGFloat height = RZGRIDVIEW_DEFAULT_HEIGHT;
+    
     
     if (_gridFlags.delegateHeightForRowAtIndexPath)
     {
@@ -655,6 +652,8 @@
         self.sectionArrangement = [self.delegate sectionArrangementForGridView:self];
     }
     
+    [self computeSectionRects];
+    
     CGRect contentRect = CGRectNull;
     
     for (int i = 0; i < self.totalSections; ++i)
@@ -681,6 +680,18 @@
     return [label autorelease];
 }
 
+- (void)computeSectionRects{
+    NSInteger numSections = 1;
+    if (_gridFlags.dataSourceNumberOfSectionsInGridView)
+    {
+        numSections = [self.dataSource numberOfSectionsInGridView:self];
+    }
+    self.sectionRects = [NSMutableArray arrayWithCapacity:numSections];
+    for (NSInteger section = 0; section < numSections; ++section)
+    {
+        [self.sectionRects addObject:[NSValue valueWithCGRect:[self computeRectForSection:section]]];
+    }
+}
 - (void)updateVisibleCells
 {
     [UIView setAnimationsEnabled:NO];
