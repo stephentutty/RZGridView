@@ -19,6 +19,7 @@
 @property (nonatomic, assign) id<RZGridViewDelegate> gridDelegate;
 @property (nonatomic, retain) NSMutableArray *sectionRanges;
 @property (nonatomic, retain) NSMutableArray *rowRangesBySection;
+@property (nonatomic, retain) NSMutableArray *sectionRects;
 
 @property (nonatomic, retain) NSMutableArray *headerTitles;
 @property (nonatomic, retain) NSMutableArray *footerTitles;
@@ -59,6 +60,7 @@
 - (NSRange)rangeForRow:(NSUInteger)row inSection:(NSUInteger)section;
 - (CGFloat)widthForSection:(NSUInteger)section;
 - (CGFloat)widthForRow:(NSUInteger)row inSection:(NSUInteger)section;
+- (CGRect)computeRectForSection:(NSUInteger)section;
 
 - (UILabel*)headerFooterLabelForTitle:(NSString*)title;
 
@@ -88,6 +90,7 @@
 @synthesize gridDelegate = _gridDelegate;
 @synthesize sectionRanges = _sectionRanges;
 @synthesize rowRangesBySection = _rowRangesBySection;
+@synthesize sectionRects = _sectionRects;
 
 @synthesize headerTitles = _headerTitles;
 @synthesize footerTitles = _footerTitles;
@@ -236,8 +239,15 @@
     return [[self.rowRangesBySection objectAtIndex:section] count];
 }
 
+
 - (CGRect)rectForSection:(NSInteger)section
 {
+    return [[self.sectionRects objectAtIndex:section] CGRectValue];
+}
+
+- (CGRect)computeRectForSection:(NSUInteger)section
+{
+    
     CGFloat xOffset = 0;
     CGFloat yOffset = 0;
     CGFloat width = 0;
@@ -268,7 +278,9 @@
     height += [self.dataSource gridView:self numberOfRowsInSection:section] * self.rowHeight;
     height += [self rectForFooterInSection:section].size.height;
     
-    return CGRectMake(xOffset, yOffset, width, height);
+    CGRect sectionRect = CGRectMake(xOffset, yOffset, width, height);
+    [self.sectionRects insertObject:[NSValue valueWithCGRect:sectionRect] atIndex:section];
+    return sectionRect;
 }
 
 - (CGRect)rectForHeaderInSection:(NSInteger)section
@@ -530,6 +542,7 @@
     self.visibleCells = [NSMutableArray array];
     self.sectionRanges = [NSMutableArray arrayWithCapacity:numSections];
     self.rowRangesBySection = [NSMutableArray arrayWithCapacity:numSections];
+    self.sectionRects = [NSMutableArray arrayWithCapacity:numSections];
     self.headerTitles = [NSMutableArray arrayWithCapacity:numSections];
     self.footerTitles = [NSMutableArray arrayWithCapacity:numSections];
     self.headerViews = [NSMutableArray arrayWithCapacity:numSections];
@@ -567,8 +580,9 @@
             [self.footerTitles addObject:[NSNull null]];
         }
         
-        
         [self.rowRangesBySection addObject:[NSMutableArray arrayWithCapacity:numRows]];
+        
+        [self.sectionRects addObject:[NSValue valueWithCGRect:[self computeRectForSection:section]]];
         
         for (NSInteger row = 0; row < numRows; ++row)
         {
