@@ -886,7 +886,7 @@
             CGRect headerFrame = headerView.frame;
             headerFrame.origin.x = RZGRIDVIEW_HEADER_INSET_X;
             headerFrame.origin.y = sectionRect.origin.y + RZGRIDVIEW_HEADER_PADDING_Y;
-            headerFrame.size.width = self.bounds.size.width;
+            headerFrame.size.width = self.bounds.size.width - 2*RZGRIDVIEW_HEADER_INSET_X;
             headerView.frame = headerFrame;
         }
         
