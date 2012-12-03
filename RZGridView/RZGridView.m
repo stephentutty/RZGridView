@@ -7,6 +7,31 @@
 //
 
 #import "RZGridView.h"
+#import <objc/runtime.h>
+
+#pragma mark - Private category on Grid view cell
+
+static char * const s_RZGridViewCellCachedIndexPath = "RZGridViewCellCachedIndexPath";
+
+@interface RZGridViewCell (CachedIndexPath)
+
+@property (nonatomic, assign) NSIndexPath *cachedIndexPath;
+
+@end
+
+@implementation RZGridViewCell (CachedIndexPath)
+
+- (void)setCachedIndexPath:(NSIndexPath *)cachedIndexPath
+{
+    objc_setAssociatedObject(self, s_RZGridViewCellCachedIndexPath, cachedIndexPath, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+}
+
+- (NSIndexPath*)cachedIndexPath
+{
+    return objc_getAssociatedObject(self, s_RZGridViewCellCachedIndexPath);
+}
+
+@end
 
 @interface RZGridView ()
 
@@ -430,44 +455,49 @@
 
 - (NSIndexPath*)indexPathForCell:(RZGridViewCell*)cell
 {
-    NSUInteger index = [self.visibleCells indexOfObject:cell];
+    NSIndexPath *indexPath = cell.cachedIndexPath;
     
-    if (index != NSNotFound)
-    {
-        NSInteger section = -1;
+    if (nil == indexPath){
+        NSUInteger index = [self.visibleCells indexOfObject:cell];
         
-        for (int sectionIndex = 0; sectionIndex < [self.sectionRanges count]; ++sectionIndex)
+        if (index != NSNotFound)
         {
-            NSValue *value = [self.sectionRanges objectAtIndex:sectionIndex];
-            NSRange sectionRange = [value rangeValue];
-            if (NSLocationInRange(index, sectionRange))
+            NSInteger section = -1;
+            
+            for (int sectionIndex = 0; sectionIndex < [self.sectionRanges count]; ++sectionIndex)
             {
-                section = sectionIndex;
-                break;
+                NSValue *value = [self.sectionRanges objectAtIndex:sectionIndex];
+                NSRange sectionRange = [value rangeValue];
+                if (NSLocationInRange(index, sectionRange))
+                {
+                    section = sectionIndex;
+                    break;
+                }
             }
-        }
-        
-        if (section < 0 || section >= [self.rowRangesBySection count])
-        {
-            return nil;
-        }
-        
-        NSArray *sectionRowRanges = [self.rowRangesBySection objectAtIndex:section];
-        
-        for (int row = 0; row < [sectionRowRanges count]; ++row)
-        {
-            NSValue *value = [sectionRowRanges objectAtIndex:row];
-            NSRange rowRange = [value rangeValue];
-            if (NSLocationInRange(index, rowRange))
+            
+            if (section < 0 || section >= [self.rowRangesBySection count])
             {
-                NSInteger column = index - rowRange.location;
-                
-                return [NSIndexPath indexPathForColumn:column andRow:row inSection:section];
+                return nil;
+            }
+            
+            NSArray *sectionRowRanges = [self.rowRangesBySection objectAtIndex:section];
+            
+            for (int row = 0; row < [sectionRowRanges count]; ++row)
+            {
+                NSValue *value = [sectionRowRanges objectAtIndex:row];
+                NSRange rowRange = [value rangeValue];
+                if (NSLocationInRange(index, rowRange))
+                {
+                    NSInteger column = index - rowRange.location;
+                    
+                    indexPath = [NSIndexPath indexPathForColumn:column andRow:row inSection:section];
+                    cell.cachedIndexPath = indexPath;
+                }
             }
         }
     }
     
-    return nil;
+    return indexPath;
 }
 
 - (RZGridViewCell*)cellForItemAtIndexPath:(NSIndexPath *)indexPath
@@ -517,6 +547,7 @@
     
     if (cell)
     {
+        cell.cachedIndexPath = nil;
         [self.recycledCells removeObject:cell];
         [cell prepareForReuse];
     }
@@ -981,6 +1012,8 @@
 
 - (void)moveItemAtIndexPath:(NSIndexPath*)sourceIndexPath toIndexPath:(NSIndexPath*)destinationIndexPath
 {
+    [self.visibleCells makeObjectsPerformSelector:@selector(setCachedIndexPath:) withObject:nil];
+    
     NSUInteger sourceIndex = [self indexForIndexPath:sourceIndexPath];
     NSUInteger destinationIndex = [self indexForIndexPath:destinationIndexPath];
     NSUInteger removeIndex = sourceIndex;
