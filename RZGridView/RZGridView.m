@@ -205,8 +205,13 @@ static char * const s_RZGridViewCellCachedIndexPath = "RZGridViewCellCachedIndex
 
 - (void)layoutSubviews
 {    
-    [self configureScrollView];
     [self tileCellsAnimated:NO];
+}
+
+- (void)setFrame:(CGRect)frame
+{
+    [super setFrame:frame];
+    [self configureScrollView];
 }
 
 - (void)setDataSource:(id<RZGridViewDataSource>)dataSource
@@ -519,7 +524,10 @@ static char * const s_RZGridViewCellCachedIndexPath = "RZGridViewCellCachedIndex
 
 - (NSArray *)visibleCells
 {
-    return [self.visibleCells filteredArrayUsingPredicate:[NSPredicate predicateWithFormat:@"SELF != %@", [NSNull null]]];
+    // This is much much faster than using a predicate
+    NSMutableArray *validVisibleCells = [NSMutableArray arrayWithArray:self.visibleCells];
+    [validVisibleCells removeObjectIdenticalTo:[NSNull null]];
+    return validVisibleCells;
 }
 
 - (NSArray *)indexPathsForVisibleItems
@@ -1348,8 +1356,6 @@ static char * const s_RZGridViewCellCachedIndexPath = "RZGridViewCellCachedIndex
 
 - (void)scrollViewDidScroll:(UIScrollView *)scrollView
 {
-    [self tileCellsAnimated:NO];
-    
     if (_gridFlags.delegateScrollViewDidScroll)
     {
         [self.delegate scrollViewDidScroll:scrollView];
