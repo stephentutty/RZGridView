@@ -204,14 +204,16 @@ static char * const s_RZGridViewCellCachedIndexPath = "RZGridViewCellCachedIndex
 }
 
 - (void)layoutSubviews
-{    
-    [self tileCellsAnimated:NO];
+{
+    [super layoutSubviews];
+    // No longer need to tile cells here. They will be tiled on scroll, rather than in two places
 }
 
 - (void)setFrame:(CGRect)frame
 {
     [super setFrame:frame];
     [self configureScrollView];
+    [self tileCellsAnimated:NO];
 }
 
 - (void)setDataSource:(id<RZGridViewDataSource>)dataSource
@@ -1356,6 +1358,9 @@ static char * const s_RZGridViewCellCachedIndexPath = "RZGridViewCellCachedIndex
 
 - (void)scrollViewDidScroll:(UIScrollView *)scrollView
 {
+    // Needs to happen here so that we have updated cell positions BEFORE the delegate gets notified.
+    // Removed from layoutSubviews to avoid duplicate calls to an expensive method.
+    [self tileCellsAnimated:NO];
     if (_gridFlags.delegateScrollViewDidScroll)
     {
         [self.delegate scrollViewDidScroll:scrollView];
