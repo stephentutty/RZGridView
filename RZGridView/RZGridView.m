@@ -675,7 +675,7 @@
     label.textColor = [UIColor blackColor];
     label.text = title;
     label.adjustsFontSizeToFitWidth = NO;
-    label.lineBreakMode = UILineBreakModeTailTruncation;
+    label.lineBreakMode = NSLineBreakByTruncatingTail;
     [label sizeToFit];
     return [label autorelease];
 }

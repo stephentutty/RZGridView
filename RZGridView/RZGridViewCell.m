@@ -126,7 +126,7 @@
         self.titleLabel.text = nil;
         self.titleLabel.frame = titleLabelRect;
         self.titleLabel.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight | UIViewAutoresizingFlexibleBottomMargin;
-        self.titleLabel.textAlignment = UITextAlignmentCenter;
+        self.titleLabel.textAlignment = NSTextAlignmentCenter;
         self.titleLabel.contentMode = UIViewContentModeScaleToFill;
         self.titleLabel.backgroundColor = [UIColor clearColor];
         [self.contentView addSubview:self.titleLabel];
