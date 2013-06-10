@@ -896,6 +896,8 @@ static char * const s_RZGridViewCellCachedIndexPath = "RZGridViewCellCachedIndex
             CGRect cellFrame = [self rectForItemAtIndexPath:cellPath];
             
             cell.frame = cellFrame;
+            
+            [cell setNeedsLayout];
         }
 //        [self.scrollView addSubview:cell];
     }
